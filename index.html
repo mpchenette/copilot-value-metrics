@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>4-Digit Rolling Selectors</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Set your 4-digit code</h1>
+      <p class="sub">Scroll each wheel or use ↑/↓ keys; Tab to move between wheels.</p>
+    </header>
+
+    <main class="app-main">
+      <section class="selector" aria-label="Four digit selector">
+        <div id="wheels" class="wheels" aria-live="off"></div>
+      </section>
+
+      <section class="readout" aria-label="Current code">
+        <div class="label">Current value</div>
+        <div id="code" class="code" aria-live="polite" aria-atomic="true">0000</div>
+      </section>
+    </main>
+
+    <script defer src="./script.js"></script>
+  </body>
+  </html>
