@@ -80,10 +80,7 @@ body {
 .wheel.static { grid-template-rows: 1fr; }
 .wheel.static .btn { display: none; }
 /* Prevent manual scrolling on static number wheels */
-.wheel.static .track {
-  overflow: hidden;
-  touch-action: none;
-}
+.wheel.static .track { touch-action: none; }
 
 .wheel:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
 
