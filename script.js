@@ -263,6 +263,7 @@ function createWordWheel(words, onSelectIndex) {
 // Mount
 const wheelsContainer = document.getElementById('wheels');
 const codeEl = document.getElementById('code');
+let sumEl = null; // inline total to the right of wheels
 
 // Number wheels are static (non-interactive)
 const numberWheels = Array.from({ length: WHEEL_COUNT }, (_, i) => createNumberWheel(i, /* interactive */ false));
@@ -278,10 +279,18 @@ const wordWheel = createWordWheel(WORDS, (wordIdx) => {
 // Append in order: word wheel first, then number wheels
 wheelsContainer.appendChild(wordWheel.el);
 numberWheels.forEach(w => wheelsContainer.appendChild(w.el));
+// Add inline sum element at the end
+sumEl = document.createElement('div');
+sumEl.className = 'sum';
+sumEl.textContent = '= 0';
+wheelsContainer.appendChild(sumEl);
 
 function updateReadout() {
-  const val = numberWheels.map(w => String(w.value)).join('');
+  const values = numberWheels.map(w => w.value);
+  const val = values.map(v => String(v)).join('');
   codeEl.textContent = val.padEnd(WHEEL_COUNT, '0');
+  const total = values.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
+  if (sumEl) sumEl.textContent = `= ${total}`;
 }
 
 // Disable direct digit clicking behavior (numbers are static now)
