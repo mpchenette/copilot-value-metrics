@@ -50,19 +50,27 @@ function createNumberWheel(index, interactive = true) {
   btnDown.title = 'Decrease digit';
   btnDown.innerHTML = '▼';
 
-  // Fill digits
-  DIGITS.forEach((d, i) => {
-    const item = document.createElement('div');
-    item.className = 'digit';
-    item.textContent = d;
-    item.setAttribute('role', 'option');
-    item.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
-    track.appendChild(item);
-  });
+  // Fill digits, repeated to allow spin animations across multiple turns
+  const REPEATS = 3; // middle block is canonical, others are for spinning room
+  for (let r = 0; r < REPEATS; r++) {
+    DIGITS.forEach((d, i) => {
+      const item = document.createElement('div');
+      item.className = 'digit';
+      item.textContent = d;
+      item.setAttribute('role', 'option');
+      item.dataset.digit = String(i);
+      // default selected on initial 0 (middle block will be corrected after layout)
+      item.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+      track.appendChild(item);
+    });
+  }
 
   wheel.append(btnUp, track, btnDown);
 
   // Helpers for current index/value
+  let currentValue = 0; // authoritative value to avoid mid-animation reads
+  const TOTAL_ITEMS = REPEATS * 10;
+  const MID_BLOCK_START = 10 * Math.floor(REPEATS / 2); // 10 with REPEATS=3
   const getDigitHeight = () => track.firstElementChild?.getBoundingClientRect().height ?? 60;
   const getPad = () => parseFloat(getComputedStyle(track).paddingTop) || 0;
   const updatePadding = () => {
@@ -71,23 +79,29 @@ function createNumberWheel(index, interactive = true) {
     track.style.paddingTop = pad + 'px';
     track.style.paddingBottom = pad + 'px';
   };
-  const snapToIndex = (idx, behavior = 'smooth') => {
+  const snapToRawIndex = (rawIdx, behavior = 'smooth') => {
     const h = getDigitHeight();
     const pad = getPad();
-    const y = pad + idx * h + h / 2 - track.clientHeight / 2;
+    const y = pad + rawIdx * h + h / 2 - track.clientHeight / 2;
     track.scrollTo({ top: y, behavior });
   };
+  const snapToIndex = (idx, behavior = 'smooth') => {
+    // Snap to the middle block by default
+    snapToRawIndex(MID_BLOCK_START + ((idx % 10) + 10) % 10, behavior);
+  };
 
-  const getIndexFromScroll = () => {
+  const getRawIndexFromScroll = () => {
     const h = getDigitHeight();
     const pad = getPad();
     const center = track.scrollTop + track.clientHeight / 2;
-    const idx = Math.round((center - pad - h / 2) / h);
-    return Math.max(0, Math.min(9, idx));
+    const raw = Math.round((center - pad - h / 2) / h);
+    return Math.max(0, Math.min(TOTAL_ITEMS - 1, raw));
   };
+  const getIndexFromScroll = () => ((getRawIndexFromScroll() % 10) + 10) % 10;
 
   const setAriaSelected = (idx) => {
-    [...track.children].forEach((el, i) => el.setAttribute('aria-selected', i === idx ? 'true' : 'false'));
+    const norm = ((idx % 10) + 10) % 10;
+    [...track.children].forEach((el) => el.setAttribute('aria-selected', el.dataset.digit === String(norm) ? 'true' : 'false'));
     const val = String(idx);
     wheel.setAttribute('aria-valuenow', val);
   };
@@ -128,6 +142,11 @@ function createNumberWheel(index, interactive = true) {
     const idx = getIndexFromScroll();
     setAriaSelected(idx);
     updateReadout();
+    if (!interactive) {
+      // Recenters to the middle block to keep room for next spin
+      snapToIndex(idx, 'auto');
+    }
+    currentValue = idx;
   };
   track.addEventListener('scroll', () => {
     if (scrollTimer) clearTimeout(scrollTimer);
@@ -148,10 +167,32 @@ function createNumberWheel(index, interactive = true) {
     updatePadding();
     snapToIndex(0, 'auto');
     setAriaSelected(0);
+    currentValue = 0;
   });
 
   // Expose minimal API
-  return { el: wheel, get value() { return getIndexFromScroll(); }, set value(v) { updatePadding(); snapToIndex(v, 'auto'); setAriaSelected(v); } };
+  function spinTo(targetIdx, options = {}) {
+    const { turns = 1, direction = 'forward' } = options;
+    const current = ((currentValue % 10) + 10) % 10;
+    // Recenter to middle block to start
+    const startRaw = MID_BLOCK_START + current;
+    snapToRawIndex(startRaw, 'auto');
+    const forwardDelta = ((targetIdx - current) % 10 + 10) % 10; // 0..9
+    const extra = direction === 'forward' ? turns * 10 : 0;
+    let destRaw = startRaw + extra + forwardDelta;
+    // Keep destination within available repeated range
+    const last = TOTAL_ITEMS - 1;
+    while (destRaw > last) destRaw -= 10;
+    while (destRaw < 0) destRaw += 10;
+    snapToRawIndex(destRaw, 'smooth');
+  }
+
+  return {
+    el: wheel,
+    get value() { return currentValue; },
+    set value(v) { const vv = ((v % 10) + 10) % 10; currentValue = vv; updatePadding(); snapToIndex(vv, 'auto'); setAriaSelected(vv); },
+    spinTo,
+  };
 }
 
 /** Create the WORD wheel that drives the number wheels */
@@ -272,7 +313,10 @@ const numberWheels = Array.from({ length: WHEEL_COUNT }, (_, i) => createNumberW
 const wordWheel = createWordWheel(WORDS, (wordIdx) => {
   const word = WORDS[wordIdx];
   const digits = WORD_TO_DIGITS.get(word) || [0, 0, 0, 0];
-  numberWheels.forEach((w, i) => { w.value = digits[i]; });
+  numberWheels.forEach((w, i) => {
+    // Spin forward at least one full turn for effect
+    w.spinTo(digits[i], { turns: 1, direction: 'forward' });
+  });
   updateReadout();
 });
 
