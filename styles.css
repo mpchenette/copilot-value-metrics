@@ -61,6 +61,17 @@ body {
   border: 1px solid rgba(255,255,255,0.06);
 }
 
+/* Wider wheel for words */
+.wheel.word { width: 160px; }
+
+/* Visually disable buttons on static number wheels */
+.wheel.static .btn { opacity: 0.35; pointer-events: none; }
+/* Prevent manual scrolling on static number wheels */
+.wheel.static .track {
+  overflow: hidden;
+  touch-action: none;
+}
+
 .wheel:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 .wheel .btn {
@@ -83,6 +94,15 @@ body {
   scroll-snap-type: y mandatory;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  /* Important: inside a CSS grid item, allow the track
+     to shrink and actually scroll. Without min-height: 0,
+     many browsers size the grid child to its content and
+     wheel/trackpad scrolling won't work. */
+  min-height: 0;
+  height: 100%;
+  /* Better touch/trackpad behavior */
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 .track::-webkit-scrollbar { display: none; }
 
@@ -95,6 +115,9 @@ body {
   scroll-snap-align: center;
   color: var(--muted);
 }
+
+/* Smaller font for word items */
+.digit.word { font-size: 18px; padding: 0 10px; text-align: center; }
 
 .digit[aria-selected="true"] { color: var(--accent-2); text-shadow: 0 0 16px rgba(56,189,248,0.35); }
 

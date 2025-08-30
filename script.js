@@ -7,17 +7,31 @@
 
 const DIGITS = Array.from({ length: 10 }, (_, i) => String(i));
 const WHEEL_COUNT = 4;
+const WORDS = [
+  'Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo',
+  'Foxtrot', 'Golf', 'Hotel', 'India', 'Juliet'
+];
 
-/** Create a single wheel element */
-function createWheel(index) {
+// Assign each word a random 4-digit code using digits 1-9
+const WORD_TO_DIGITS = new Map(
+  WORDS.map(w => [w, Array.from({ length: WHEEL_COUNT }, () => Math.floor(Math.random() * 9) + 1)])
+);
+
+/** Create a single NUMBER wheel element */
+function createNumberWheel(index, interactive = true) {
   const wheel = document.createElement('div');
-  wheel.className = 'wheel';
+  wheel.className = 'wheel' + (interactive ? '' : ' static');
   wheel.setAttribute('role', 'spinbutton');
   wheel.setAttribute('aria-label', `Digit ${index + 1}`);
   wheel.setAttribute('aria-valuemin', '0');
   wheel.setAttribute('aria-valuemax', '9');
   wheel.setAttribute('aria-valuenow', '0');
-  wheel.tabIndex = 0; // focus container for keyboard arrows
+  if (interactive) {
+    wheel.tabIndex = 0; // focus container for keyboard arrows
+  } else {
+    wheel.tabIndex = -1;
+    wheel.setAttribute('aria-readonly', 'true');
+  }
 
   const btnUp = document.createElement('button');
   btnUp.className = 'btn btn-up';
@@ -75,17 +89,29 @@ function createWheel(index) {
     snapToIndex(next);
   };
 
-  // Events
-  btnUp.addEventListener('click', () => step(+1));
-  btnDown.addEventListener('click', () => step(-1));
+  // Events (only if interactive)
+  if (interactive) {
+    btnUp.addEventListener('click', () => step(+1));
+    btnDown.addEventListener('click', () => step(-1));
+    // If user interacts with the track, move focus to the wheel
+    // so ArrowUp/ArrowDown work immediately after a click/scroll.
+    track.addEventListener('pointerdown', () => wheel.focus());
+  } else {
+    // Block manual scrolling on static number wheels
+    track.addEventListener('wheel', (e) => e.preventDefault(), { passive: false });
+    track.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+    track.addEventListener('pointerdown', (e) => e.preventDefault());
+  }
 
-  // Keyboard on wheel container
-  wheel.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowUp') { e.preventDefault(); step(+1); }
-    else if (e.key === 'ArrowDown') { e.preventDefault(); step(-1); }
-    else if (e.key === 'Home') { e.preventDefault(); snapToIndex(0); }
-    else if (e.key === 'End') { e.preventDefault(); snapToIndex(9); }
-  });
+  // Keyboard on wheel container (only if interactive)
+  if (interactive) {
+    wheel.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') { e.preventDefault(); step(+1); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); step(-1); }
+      else if (e.key === 'Home') { e.preventDefault(); snapToIndex(0); }
+      else if (e.key === 'End') { e.preventDefault(); snapToIndex(9); }
+    });
+  }
 
   // Sync ARIA and readout on scroll end (debounced)
   let scrollTimer = null;
@@ -109,31 +135,118 @@ function createWheel(index) {
   return { el: wheel, get value() { return getIndexFromScroll(); }, set value(v) { snapToIndex(v, 'auto'); setAriaSelected(v); } };
 }
 
+/** Create the WORD wheel that drives the number wheels */
+function createWordWheel(words, onSelectIndex) {
+  const wheel = document.createElement('div');
+  wheel.className = 'wheel word';
+  wheel.setAttribute('role', 'group');
+  wheel.setAttribute('aria-label', 'Word selector');
+  wheel.tabIndex = 0;
+
+  const btnUp = document.createElement('button');
+  btnUp.className = 'btn btn-up';
+  btnUp.type = 'button';
+  btnUp.title = 'Previous word';
+  btnUp.innerHTML = '▲';
+
+  const track = document.createElement('div');
+  track.className = 'track';
+  track.setAttribute('role', 'listbox');
+  track.setAttribute('aria-label', 'Word list');
+
+  const btnDown = document.createElement('button');
+  btnDown.className = 'btn btn-down';
+  btnDown.type = 'button';
+  btnDown.title = 'Next word';
+  btnDown.innerHTML = '▼';
+
+  words.forEach((w, i) => {
+    const item = document.createElement('div');
+    item.className = 'digit word';
+    item.textContent = w;
+    item.setAttribute('role', 'option');
+    item.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+    track.appendChild(item);
+  });
+
+  wheel.append(btnUp, track, btnDown);
+
+  const getItemHeight = () => track.firstElementChild?.getBoundingClientRect().height ?? 60;
+  const snapToIndex = (idx, behavior = 'smooth') => {
+    const h = getItemHeight();
+    const y = idx * h + h / 2 - track.clientHeight / 2;
+    track.scrollTo({ top: y, behavior });
+  };
+  const getIndexFromScroll = () => {
+    const h = getItemHeight();
+    const center = track.scrollTop + track.clientHeight / 2;
+    const idx = Math.round((center - h / 2) / h);
+    return Math.max(0, Math.min(words.length - 1, idx));
+  };
+  const setAriaSelected = (idx) => {
+    [...track.children].forEach((el, i) => el.setAttribute('aria-selected', i === idx ? 'true' : 'false'));
+  };
+  const step = (delta) => {
+    const idx = getIndexFromScroll();
+    const next = (idx + delta + words.length) % words.length;
+    snapToIndex(next);
+  };
+
+  btnUp.addEventListener('click', () => step(-1));
+  btnDown.addEventListener('click', () => step(+1));
+  track.addEventListener('pointerdown', () => wheel.focus());
+  wheel.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowUp') { e.preventDefault(); step(-1); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); step(+1); }
+    else if (e.key === 'Home') { e.preventDefault(); snapToIndex(0); }
+    else if (e.key === 'End') { e.preventDefault(); snapToIndex(words.length - 1); }
+  });
+
+  let scrollTimer = null;
+  const onScrollSettled = () => {
+    const idx = getIndexFromScroll();
+    setAriaSelected(idx);
+    onSelectIndex?.(idx);
+  };
+  track.addEventListener('scroll', () => {
+    if (scrollTimer) clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(onScrollSettled, 80);
+  }, { passive: true });
+
+  requestAnimationFrame(() => {
+    snapToIndex(0, 'auto');
+    setAriaSelected(0);
+    onSelectIndex?.(0);
+  });
+
+  return { el: wheel, get index() { return getIndexFromScroll(); }, set index(v) { snapToIndex(v, 'auto'); setAriaSelected(v); onSelectIndex?.(v); } };
+}
+
 // Mount
 const wheelsContainer = document.getElementById('wheels');
 const codeEl = document.getElementById('code');
-const wheels = Array.from({ length: WHEEL_COUNT }, (_, i) => createWheel(i));
-wheels.forEach(w => wheelsContainer.appendChild(w.el));
+
+// Number wheels are static (non-interactive)
+const numberWheels = Array.from({ length: WHEEL_COUNT }, (_, i) => createNumberWheel(i, /* interactive */ false));
+
+// Word wheel controls the number wheels
+const wordWheel = createWordWheel(WORDS, (wordIdx) => {
+  const word = WORDS[wordIdx];
+  const digits = WORD_TO_DIGITS.get(word) || [0, 0, 0, 0];
+  numberWheels.forEach((w, i) => { w.value = digits[i]; });
+  updateReadout();
+});
+
+// Append in order: word wheel first, then number wheels
+wheelsContainer.appendChild(wordWheel.el);
+numberWheels.forEach(w => wheelsContainer.appendChild(w.el));
 
 function updateReadout() {
-  const val = wheels.map(w => String(w.value)).join('');
+  const val = numberWheels.map(w => String(w.value)).join('');
   codeEl.textContent = val.padEnd(WHEEL_COUNT, '0');
 }
 
-// Click on a digit to snap directly
-document.addEventListener('click', (e) => {
-  const d = e.target.closest('.digit');
-  if (!d) return;
-  const track = d.parentElement;
-  const wheel = track.parentElement;
-  const idx = [...track.children].indexOf(d);
-  // Find matching wheel instance
-  const w = wheels.find(wi => wi.el === wheel);
-  if (w && idx >= 0) {
-    w.value = idx;
-    updateReadout();
-  }
-});
+// Disable direct digit clicking behavior (numbers are static now)
 
 // Initial readout
 updateReadout();
