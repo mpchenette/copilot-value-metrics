@@ -65,7 +65,9 @@ body {
 .wheel.word { width: 160px; }
 
 /* Visually disable buttons on static number wheels */
-.wheel.static .btn { opacity: 0.35; pointer-events: none; }
+/* Static number wheels: no arrows, full height track */
+.wheel.static { grid-template-rows: 1fr; }
+.wheel.static .btn { display: none; }
 /* Prevent manual scrolling on static number wheels */
 .wheel.static .track {
   overflow: hidden;

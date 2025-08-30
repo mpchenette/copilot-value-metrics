@@ -64,16 +64,25 @@ function createNumberWheel(index, interactive = true) {
 
   // Helpers for current index/value
   const getDigitHeight = () => track.firstElementChild?.getBoundingClientRect().height ?? 60;
+  const getPad = () => parseFloat(getComputedStyle(track).paddingTop) || 0;
+  const updatePadding = () => {
+    const h = getDigitHeight();
+    const pad = Math.max(0, Math.round(track.clientHeight / 2 - h / 2));
+    track.style.paddingTop = pad + 'px';
+    track.style.paddingBottom = pad + 'px';
+  };
   const snapToIndex = (idx, behavior = 'smooth') => {
     const h = getDigitHeight();
-    const y = idx * h + h / 2 - track.clientHeight / 2;
+    const pad = getPad();
+    const y = pad + idx * h + h / 2 - track.clientHeight / 2;
     track.scrollTo({ top: y, behavior });
   };
 
   const getIndexFromScroll = () => {
     const h = getDigitHeight();
+    const pad = getPad();
     const center = track.scrollTop + track.clientHeight / 2;
-    const idx = Math.round((center - h / 2) / h);
+    const idx = Math.round((center - pad - h / 2) / h);
     return Math.max(0, Math.min(9, idx));
   };
 
@@ -125,14 +134,24 @@ function createNumberWheel(index, interactive = true) {
     scrollTimer = setTimeout(onScrollSettled, 80);
   }, { passive: true });
 
+  // Keep centering working at different sizes
+  const handleResize = () => {
+    const current = getIndexFromScroll();
+    updatePadding();
+    snapToIndex(current, 'auto');
+    setAriaSelected(current);
+  };
+  window.addEventListener('resize', handleResize);
+
   // Initialize to 0 centered after layout
   requestAnimationFrame(() => {
+    updatePadding();
     snapToIndex(0, 'auto');
     setAriaSelected(0);
   });
 
   // Expose minimal API
-  return { el: wheel, get value() { return getIndexFromScroll(); }, set value(v) { snapToIndex(v, 'auto'); setAriaSelected(v); } };
+  return { el: wheel, get value() { return getIndexFromScroll(); }, set value(v) { updatePadding(); snapToIndex(v, 'auto'); setAriaSelected(v); } };
 }
 
 /** Create the WORD wheel that drives the number wheels */
@@ -172,15 +191,24 @@ function createWordWheel(words, onSelectIndex) {
   wheel.append(btnUp, track, btnDown);
 
   const getItemHeight = () => track.firstElementChild?.getBoundingClientRect().height ?? 60;
+  const getPad = () => parseFloat(getComputedStyle(track).paddingTop) || 0;
+  const updatePadding = () => {
+    const h = getItemHeight();
+    const pad = Math.max(0, Math.round(track.clientHeight / 2 - h / 2));
+    track.style.paddingTop = pad + 'px';
+    track.style.paddingBottom = pad + 'px';
+  };
   const snapToIndex = (idx, behavior = 'smooth') => {
     const h = getItemHeight();
-    const y = idx * h + h / 2 - track.clientHeight / 2;
+    const pad = getPad();
+    const y = pad + idx * h + h / 2 - track.clientHeight / 2;
     track.scrollTo({ top: y, behavior });
   };
   const getIndexFromScroll = () => {
     const h = getItemHeight();
+    const pad = getPad();
     const center = track.scrollTop + track.clientHeight / 2;
-    const idx = Math.round((center - h / 2) / h);
+    const idx = Math.round((center - pad - h / 2) / h);
     return Math.max(0, Math.min(words.length - 1, idx));
   };
   const setAriaSelected = (idx) => {
@@ -213,7 +241,17 @@ function createWordWheel(words, onSelectIndex) {
     scrollTimer = setTimeout(onScrollSettled, 80);
   }, { passive: true });
 
+  const handleResize = () => {
+    const current = getIndexFromScroll();
+    updatePadding();
+    snapToIndex(current, 'auto');
+    setAriaSelected(current);
+    onSelectIndex?.(current);
+  };
+  window.addEventListener('resize', handleResize);
+
   requestAnimationFrame(() => {
+    updatePadding();
     snapToIndex(0, 'auto');
     setAriaSelected(0);
     onSelectIndex?.(0);
