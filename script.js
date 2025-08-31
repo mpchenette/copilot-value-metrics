@@ -7,15 +7,28 @@
 
 const DIGITS = Array.from({ length: 10 }, (_, i) => String(i));
 const WHEEL_COUNT = 4;
-const WORDS = [
-  'Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo',
-  'Foxtrot', 'Golf', 'Hotel', 'India', 'Juliet'
+
+// Load static words + codes from words.js (window.WORDS_DATA).
+// Fallback to a minimal default if the file is missing.
+const DEFAULT_WORDS_DATA = [
+  { word: 'Alpha', digits: [0, 0, 0, 0] },
+  { word: 'Bravo', digits: [1, 2, 3, 4] }
 ];
 
-// Assign each word a random 4-digit code using digits 1-9
-const WORD_TO_DIGITS = new Map(
-  WORDS.map(w => [w, Array.from({ length: WHEEL_COUNT }, () => Math.floor(Math.random() * 9) + 1)])
-);
+function normalizeDigits(arr) {
+  return Array.from({ length: WHEEL_COUNT }, (_, i) => {
+    const n = Number(Array.isArray(arr) ? arr[i] : 0);
+    const v = Number.isFinite(n) ? Math.floor(n) : 0;
+    return Math.max(0, Math.min(9, v));
+  });
+}
+
+const WORDS_DATA = Array.isArray(window.WORDS_DATA) && window.WORDS_DATA.length > 0
+  ? window.WORDS_DATA
+  : DEFAULT_WORDS_DATA;
+
+const WORDS = WORDS_DATA.map(e => e.word);
+const WORD_TO_DIGITS = new Map(WORDS_DATA.map(e => [e.word, normalizeDigits(e.digits)]));
 
 /** Create a single NUMBER wheel element */
 function createNumberWheel(index, interactive = true) {

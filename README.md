@@ -29,4 +29,15 @@ Alternatively, in VS Code, use the Live Server extension and click “Go Live”
 - `index.html` – markup and containers
 - `styles.css` – layout and wheel visuals
 - `script.js` – behavior and keyboard support
+- `words.js` – static list of words and their 4-digit codes (edit this)
+
+### Configure words and codes
+
+Edit `words.js` to control the selectable words and the exact 4-digit codes they map to. Example entry:
+
+```
+{ word: 'Alpha', digits: [1, 5, 3, 7] }
+```
+
+You can add/remove entries; the UI adapts automatically. Each digit must be 0–9.
 # copilot-value-metrics
