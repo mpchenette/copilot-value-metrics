@@ -209,20 +209,25 @@ body {
   font-size: 14px;
 }
 .details-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
 }
 .detail-item {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 10px;
   align-items: start;
-  padding: 12px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 10px;
+  padding: 10px 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
 }
+.details-grid .detail-item + .detail-item { border-top: 1px solid rgba(255,255,255,0.06); }
 .detail-badge {
   display: grid;
   place-items: center;
@@ -251,5 +256,4 @@ body {
 @media (max-width: 520px) {
   .wheel { width: 64px; height: 200px; }
   .digit { height: 52px; font-size: 28px; }
-  .details-grid { grid-template-columns: 1fr; }
 }
