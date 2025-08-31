@@ -40,6 +40,9 @@ body {
   width: 100%;
 }
 
+/* Space details just under the wheels when nested inside .selector */
+.selector .details { margin-top: 16px; }
+
 .wheels {
   display: flex;
   gap: 32px; /* more breathing room between columns */
