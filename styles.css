@@ -42,11 +42,14 @@ body {
 
 .wheels {
   display: flex;
-  gap: 16px;
-  padding: 20px;
+  gap: 32px; /* more breathing room between columns */
+  padding: 28px; /* slightly larger padding */
   border-radius: 16px;
   background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.2));
   box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+  align-items: start;
+  /* Fix panel height so it doesn't shift during scroll */
+  min-height: 300px;
 }
 
 /* Inline sum display to the right of the wheels */
@@ -58,6 +61,11 @@ body {
   font-weight: 700;
   color: var(--text);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  /* Fix width to avoid panel width changes as total grows */
+  width: 80px; /* fits up to 3 digits comfortably */
+  /* Center vertically within the wheels container */
+  align-self: center;
 }
 
 .wheel {
@@ -73,11 +81,11 @@ body {
 }
 
 /* Wider wheel for words */
-.wheel.word { width: 160px; }
+.wheel.word { width: 180px; }
 
 /* Visually disable buttons on static number wheels */
-/* Static number wheels: header + track */
-.wheel.static { grid-template-rows: auto 1fr; }
+/* Static number wheels: just the track (labels live outside) */
+.wheel.static { grid-template-rows: 1fr; }
 .wheel.static .btn { display: none; }
 
 /* Header label for number wheels */
@@ -87,6 +95,15 @@ body {
   text-align: center;
   padding: 6px 4px 0;
   user-select: none;
+  min-height: 16px; /* ensure consistent spacer height */
+}
+
+/* Column wrapper to place label above wheel */
+.wheel-col {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  justify-items: center;
+  row-gap: 10px; /* space between label and wheel */
 }
 /* Prevent manual scrolling on static number wheels */
 .wheel.static .track { touch-action: none; }

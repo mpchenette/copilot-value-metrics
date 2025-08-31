@@ -64,11 +64,6 @@ function createNumberWheel(index, interactive = true) {
   btnDown.title = 'Decrease digit';
   btnDown.innerHTML = '▼';
 
-  // Optional header label for static number wheels
-  const header = document.createElement('div');
-  header.className = 'wheel-label';
-  header.textContent = NUMBER_LABELS[index] || `Digit ${index + 1}`;
-
   // Fill digits, repeated to allow spin animations across multiple turns
   const REPEATS = 3; // middle block is canonical, others are for spinning room
   for (let r = 0; r < REPEATS; r++) {
@@ -84,11 +79,7 @@ function createNumberWheel(index, interactive = true) {
     });
   }
 
-  if (interactive) {
-    wheel.append(btnUp, track, btnDown);
-  } else {
-    wheel.append(header, track);
-  }
+  wheel.append(btnUp, track, btnDown);
 
   // Helpers for current index/value
   let currentValue = 0; // authoritative value to avoid mid-animation reads
@@ -343,9 +334,23 @@ const wordWheel = createWordWheel(WORDS, (wordIdx) => {
   updateReadout();
 });
 
-// Append in order: word wheel first, then number wheels
-wheelsContainer.appendChild(wordWheel.el);
-numberWheels.forEach(w => wheelsContainer.appendChild(w.el));
+// Append in order: word wheel first, with an empty label to align tops
+const wordCol = document.createElement('div');
+wordCol.className = 'wheel-col';
+const wordSpacer = document.createElement('div');
+wordSpacer.className = 'wheel-label';
+wordSpacer.textContent = ' '; // spacer to reserve label height
+wordCol.append(wordSpacer, wordWheel.el);
+wheelsContainer.appendChild(wordCol);
+numberWheels.forEach((w, i) => {
+  const col = document.createElement('div');
+  col.className = 'wheel-col';
+  const label = document.createElement('div');
+  label.className = 'wheel-label';
+  label.textContent = NUMBER_LABELS[i] || `Digit ${i + 1}`;
+  col.append(label, w.el);
+  wheelsContainer.appendChild(col);
+});
 // Add inline sum element at the end
 sumEl = document.createElement('div');
 sumEl.className = 'sum';
