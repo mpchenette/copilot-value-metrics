@@ -76,9 +76,18 @@ body {
 .wheel.word { width: 160px; }
 
 /* Visually disable buttons on static number wheels */
-/* Static number wheels: no arrows, full height track */
-.wheel.static { grid-template-rows: 1fr; }
+/* Static number wheels: header + track */
+.wheel.static { grid-template-rows: auto 1fr; }
 .wheel.static .btn { display: none; }
+
+/* Header label for number wheels */
+.wheel-label {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  padding: 6px 4px 0;
+  user-select: none;
+}
 /* Prevent manual scrolling on static number wheels */
 .wheel.static .track { touch-action: none; }
 

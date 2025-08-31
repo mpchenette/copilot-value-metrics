@@ -7,6 +7,7 @@
 
 const DIGITS = Array.from({ length: 10 }, (_, i) => String(i));
 const WHEEL_COUNT = 4;
+const NUMBER_LABELS = ['Digit 1', 'Digit 2', 'Digit 3', 'Digit 4'];
 
 // Load static words + codes from words.js (window.WORDS_DATA).
 // Fallback to a minimal default if the file is missing.
@@ -63,6 +64,11 @@ function createNumberWheel(index, interactive = true) {
   btnDown.title = 'Decrease digit';
   btnDown.innerHTML = '▼';
 
+  // Optional header label for static number wheels
+  const header = document.createElement('div');
+  header.className = 'wheel-label';
+  header.textContent = NUMBER_LABELS[index] || `Digit ${index + 1}`;
+
   // Fill digits, repeated to allow spin animations across multiple turns
   const REPEATS = 3; // middle block is canonical, others are for spinning room
   for (let r = 0; r < REPEATS; r++) {
@@ -78,7 +84,11 @@ function createNumberWheel(index, interactive = true) {
     });
   }
 
-  wheel.append(btnUp, track, btnDown);
+  if (interactive) {
+    wheel.append(btnUp, track, btnDown);
+  } else {
+    wheel.append(header, track);
+  }
 
   // Helpers for current index/value
   let currentValue = 0; // authoritative value to avoid mid-animation reads
