@@ -75,7 +75,7 @@ body {
   display: grid;
   grid-template-rows: auto 1fr auto;
   align-items: center;
-  width: 76px;
+  width: 84px;
   height: 220px;
   background: var(--panel);
   border-radius: 12px;
@@ -86,10 +86,8 @@ body {
 /* Wider wheel for words */
 .wheel.word { width: 180px; }
 
-/* Visually disable buttons on static number wheels */
 /* Static number wheels: just the track (labels live outside) */
 .wheel.static { grid-template-rows: 1fr; }
-.wheel.static .btn { display: none; }
 
 /* Header label for number wheels */
 .wheel-label {
@@ -194,7 +192,6 @@ body {
 .wheel:not(.word) .digit { opacity: 0.35; }
 .wheel:not(.word) .digit[aria-selected="true"] { opacity: 1; }
 
-/* (readout removed) */
 
 /* Details panel */
 .details {
@@ -245,17 +242,17 @@ body {
   gap: 4px;
 }
 .detail-title {
-  font-size: 13px;
+  font-size: 16px;
   color: var(--muted);
 }
 .detail-text {
-  font-size: 14px;
-  line-height: 1.25rem;
+  font-size: 16px;
+  line-height: 1.5rem;
 }
 
 @media (max-width: 520px) {
   .app-header h1 { font-size: 32px; }
   .app-header .sub { font-size: 14px; }
-  .wheel { width: 64px; height: 200px; }
+  .wheel { width: 72px; height: 200px; }
   .digit { height: 52px; font-size: 28px; }
 }

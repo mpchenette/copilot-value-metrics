@@ -16,19 +16,12 @@ const NUMBER_LABELS = [
 
 // Load static words + codes from words.js (window.WORDS_DATA).
 // Fallback to a minimal default if the file is missing.
-const DEFAULT_WORDS_DATA = [
-  { word: 'Example A', digits: [1, 1, 1, 1] },
-  { word: 'Example B', digits: [2, 3, 4, 5] }
-];
-
 function clampScore(x) {
   const n = Number.isFinite(Number(x)) ? Math.floor(Number(x)) : 1;
   return Math.max(1, Math.min(10, n));
 }
 
-const WORDS_DATA = Array.isArray(window.WORDS_DATA) && window.WORDS_DATA.length > 0
-  ? window.WORDS_DATA
-  : DEFAULT_WORDS_DATA;
+const WORDS_DATA = Array.isArray(window.WORDS_DATA) ? window.WORDS_DATA : [];
 
 // Preprocess words: clamp scores to 1–10, compute totals, map to 0–9 indices for wheels, then sort by total desc.
 const PROCESSED_WORDS = (WORDS_DATA || []).map(e => {
@@ -64,22 +57,10 @@ function createNumberWheel(index, interactive = true) {
     wheel.setAttribute('aria-readonly', 'true');
   }
 
-  const btnUp = document.createElement('button');
-  btnUp.className = 'btn btn-up';
-  btnUp.type = 'button';
-  btnUp.title = 'Increase digit';
-  btnUp.innerHTML = '▲';
-
   const track = document.createElement('div');
   track.className = 'track';
   track.setAttribute('role', 'listbox');
   track.setAttribute('aria-label', `Scores list for ${label}`);
-
-  const btnDown = document.createElement('button');
-  btnDown.className = 'btn btn-down';
-  btnDown.type = 'button';
-  btnDown.title = 'Decrease digit';
-  btnDown.innerHTML = '▼';
 
   // Fill digits, repeated to allow spin animations across multiple turns
   const REPEATS = 3; // middle block is canonical, others are for spinning room
@@ -96,7 +77,26 @@ function createNumberWheel(index, interactive = true) {
     });
   }
 
-  wheel.append(btnUp, track, btnDown);
+  if (interactive) {
+    const btnUp = document.createElement('button');
+    btnUp.className = 'btn btn-up';
+    btnUp.type = 'button';
+    btnUp.title = 'Increase score';
+    btnUp.innerHTML = '▲';
+
+    const btnDown = document.createElement('button');
+    btnDown.className = 'btn btn-down';
+    btnDown.type = 'button';
+    btnDown.title = 'Decrease score';
+    btnDown.innerHTML = '▼';
+
+    wheel.append(btnUp, track, btnDown);
+    btnUp.addEventListener('click', () => step(+1));
+    btnDown.addEventListener('click', () => step(-1));
+  } else {
+    // Static wheels: only the track
+    wheel.append(track);
+  }
 
   // Helpers for current index/value
   let currentValue = 0; // stores index 0–9; exposed as score 1–10 via getter
@@ -145,10 +145,7 @@ function createNumberWheel(index, interactive = true) {
 
   // Events (only if interactive)
   if (interactive) {
-    btnUp.addEventListener('click', () => step(+1));
-    btnDown.addEventListener('click', () => step(-1));
-    // If user interacts with the track, move focus to the wheel
-    // so ArrowUp/ArrowDown work immediately after a click/scroll.
+    // If user interacts with the track, move focus to the wheel so ArrowUp/Down work
     track.addEventListener('pointerdown', () => wheel.focus());
   } else {
     // Block manual scrolling on static number wheels
@@ -352,7 +349,6 @@ const wordWheel = createWordWheel(WORDS, (wordIdx) => {
     w.spinTo(digits[i], { turns: 1, direction: 'forward' });
   });
   updateReadout();
-  updateDetails();
 });
 
 // Append in order: word wheel first, with an empty label to align tops
