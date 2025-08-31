@@ -30,6 +30,13 @@ const WORDS_DATA = Array.isArray(window.WORDS_DATA) && window.WORDS_DATA.length 
 
 const WORDS = WORDS_DATA.map(e => e.word);
 const WORD_TO_DIGITS = new Map(WORDS_DATA.map(e => [e.word, normalizeDigits(e.digits)]));
+const WORD_TO_EXPLANATIONS = new Map(WORDS_DATA.map(e => {
+  // Optional: provide up to 4 explanations matching the digits.
+  // If missing, we fall back to a simple placeholder per digit.
+  const ex = Array.isArray(e.explanations) ? e.explanations.slice(0, WHEEL_COUNT) : [];
+  const padded = Array.from({ length: WHEEL_COUNT }, (_, i) => ex[i] ?? '');
+  return [e.word, padded];
+}));
 
 /** Create a single NUMBER wheel element */
 function createNumberWheel(index, interactive = true) {
@@ -318,7 +325,9 @@ function createWordWheel(words, onSelectIndex) {
 // Mount
 const wheelsContainer = document.getElementById('wheels');
 const codeEl = document.getElementById('code');
+const detailsEl = document.getElementById('details');
 let sumEl = null; // inline total to the right of wheels
+let currentWordIdx = 0;
 
 // Number wheels are static (non-interactive)
 const numberWheels = Array.from({ length: WHEEL_COUNT }, (_, i) => createNumberWheel(i, /* interactive */ false));
@@ -327,11 +336,13 @@ const numberWheels = Array.from({ length: WHEEL_COUNT }, (_, i) => createNumberW
 const wordWheel = createWordWheel(WORDS, (wordIdx) => {
   const word = WORDS[wordIdx];
   const digits = WORD_TO_DIGITS.get(word) || [0, 0, 0, 0];
+  currentWordIdx = wordIdx;
   numberWheels.forEach((w, i) => {
     // Spin forward at least one full turn for effect
     w.spinTo(digits[i], { turns: 1, direction: 'forward' });
   });
   updateReadout();
+  updateDetails();
 });
 
 // Append in order: word wheel first, with an empty label to align tops
@@ -363,9 +374,50 @@ function updateReadout() {
   codeEl.textContent = val.padEnd(WHEEL_COUNT, '0');
   const total = values.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
   if (sumEl) sumEl.textContent = `= ${total}`;
+  // Keep the details badges in sync with the numbers
+  updateDetails();
 }
 
 // Disable direct digit clicking behavior (numbers are static now)
 
 // Initial readout
 updateReadout();
+
+function updateDetails() {
+  if (!detailsEl) return;
+  const word = WORDS[currentWordIdx] || '';
+  const labels = NUMBER_LABELS;
+  const digits = numberWheels.map(w => w.value);
+  const ex = WORD_TO_EXPLANATIONS.get(word) || [];
+
+  // Build items
+  detailsEl.innerHTML = '';
+  for (let i = 0; i < WHEEL_COUNT; i++) {
+    const item = document.createElement('div');
+    item.className = 'detail-item';
+
+    const badge = document.createElement('div');
+    badge.className = 'detail-badge';
+    badge.setAttribute('aria-label', `${labels[i]} value`);
+    badge.textContent = String(((digits[i] ?? 0) % 10 + 10) % 10);
+
+    const content = document.createElement('div');
+    content.className = 'detail-content';
+
+    const title = document.createElement('div');
+    title.className = 'detail-title';
+    title.textContent = labels[i] || `Digit ${i + 1}`;
+
+    const text = document.createElement('div');
+    text.className = 'detail-text';
+    const expl = (ex[i] || '').trim();
+    text.textContent = expl || 'No explanation provided.';
+
+    content.append(title, text);
+    item.append(badge, content);
+    detailsEl.appendChild(item);
+  }
+}
+
+// Populate details on first paint
+updateDetails();
