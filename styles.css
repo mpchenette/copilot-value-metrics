@@ -150,12 +150,17 @@ body {
   font-variant-numeric: tabular-nums;
   scroll-snap-align: center;
   color: var(--muted);
+  transition: opacity 160ms ease, color 160ms ease;
 }
 
 /* Smaller font for word items */
 .digit.word { font-size: 18px; padding: 0 10px; text-align: center; }
 
 .digit[aria-selected="true"] { color: var(--accent-2); text-shadow: 0 0 16px rgba(56,189,248,0.35); }
+
+/* Dim unselected digits in number wheels (not the word wheel) */
+.wheel:not(.word) .digit { opacity: 0.35; }
+.wheel:not(.word) .digit[aria-selected="true"] { opacity: 1; }
 
 .readout {
   display: grid;
