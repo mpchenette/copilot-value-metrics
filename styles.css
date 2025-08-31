@@ -142,6 +142,35 @@ body {
 }
 .track::-webkit-scrollbar { display: none; }
 
+/* Soft fade-out at the top/bottom of number columns */
+.wheel:not(.word) .track {
+  /* Stronger fade: wider transparent edges, tighter visible band */
+  /* Safari/WebKit */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 0%,
+    rgba(0,0,0,0) 18%,
+    rgba(0,0,0,1) 35%,
+    rgba(0,0,0,1) 65%,
+    rgba(0,0,0,0) 82%,
+    rgba(0,0,0,0) 100%
+  );
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  /* Other modern browsers */
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 0%,
+    rgba(0,0,0,0) 18%,
+    rgba(0,0,0,1) 35%,
+    rgba(0,0,0,1) 65%,
+    rgba(0,0,0,0) 82%,
+    rgba(0,0,0,0) 100%
+  );
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+}
+
 .digit {
   height: 60px;
   display: grid;
