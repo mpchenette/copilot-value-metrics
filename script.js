@@ -52,7 +52,8 @@ function createNumberWheel(index, interactive = true) {
   const wheel = document.createElement('div');
   wheel.className = 'wheel' + (interactive ? '' : ' static');
   wheel.setAttribute('role', 'spinbutton');
-  wheel.setAttribute('aria-label', `Digit ${index + 1}`);
+  const label = NUMBER_LABELS[index] || `Category ${index + 1}`;
+  wheel.setAttribute('aria-label', `${label} score`);
   wheel.setAttribute('aria-valuemin', '1');
   wheel.setAttribute('aria-valuemax', '10');
   wheel.setAttribute('aria-valuenow', '1');
@@ -72,7 +73,7 @@ function createNumberWheel(index, interactive = true) {
   const track = document.createElement('div');
   track.className = 'track';
   track.setAttribute('role', 'listbox');
-  track.setAttribute('aria-label', `Digits list for wheel ${index + 1}`);
+  track.setAttribute('aria-label', `Scores list for ${label}`);
 
   const btnDown = document.createElement('button');
   btnDown.className = 'btn btn-down';
@@ -230,7 +231,7 @@ function createWordWheel(words, onSelectIndex) {
   const wheel = document.createElement('div');
   wheel.className = 'wheel word';
   wheel.setAttribute('role', 'group');
-  wheel.setAttribute('aria-label', 'Word selector');
+  wheel.setAttribute('aria-label', 'Metric selector');
   wheel.tabIndex = 0;
 
   const btnUp = document.createElement('button');
@@ -242,7 +243,7 @@ function createWordWheel(words, onSelectIndex) {
   const track = document.createElement('div');
   track.className = 'track';
   track.setAttribute('role', 'listbox');
-  track.setAttribute('aria-label', 'Word list');
+  track.setAttribute('aria-label', 'Metric list');
 
   const btnDown = document.createElement('button');
   btnDown.className = 'btn btn-down';
@@ -385,9 +386,7 @@ function updateReadout() {
   updateDetails();
 }
 
-// Disable direct digit clicking behavior (numbers are static now)
-
-// Initial readout
+// Initial render
 updateReadout();
 
 function updateDetails() {

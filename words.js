@@ -1,6 +1,6 @@
 // SDLC metrics with four category scores per metric:
 // [Ease of Gathering, Signal Strength, Resistance to Gaming, Objectivity]
-// 0–9 scale where higher is better for each dimension.
+// 1–10 scale where higher is better for each dimension.
 window.WORDS_DATA = [
   {
     word: 'PR Cycle Time',

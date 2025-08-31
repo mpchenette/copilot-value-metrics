@@ -1,12 +1,13 @@
-## 4-Digit Rolling Number Selectors
+## Copilot Value Metrics Explorer
 
-A tiny vanilla web app with four vertical wheels you can scroll to pick digits 0–9, like setting a PIN or combo lock.
+A tiny vanilla web app to explore SDLC metrics and how well they capture the impact of AI coding assistants across four categories: Ease of Gathering, Signal Strength, Resistance to Gaming, and Objectivity.
 
 Features:
-- Four independent digit wheels (0–9) with smooth scroll-snap
-- Mouse/touch scroll, click on a digit, or use keyboard: Up/Down, Home/End
-- Live 4-digit readout updates as you scroll
-- Accessible roles/labels with `aria-valuenow` and `aria-selected`
+- Metric (word) wheel sorted by total score (descending)
+- Four score wheels (1–10) displayed alongside category labels
+- Inline total of the four category scores
+- Per-category explanations in a consolidated details panel
+- Accessible roles/labels with ARIA attributes
 
 ### Run locally
 
@@ -27,17 +28,25 @@ Alternatively, in VS Code, use the Live Server extension and click “Go Live”
 ### Files
 
 - `index.html` – markup and containers
-- `styles.css` – layout and wheel visuals
-- `script.js` – behavior and keyboard support
-- `words.js` – static list of words and their 4-digit codes (edit this)
+- `styles.css` – layout and visuals
+- `script.js` – behavior, sorting, accessibility
+- `words.js` – list of metrics with 4 scores (1–10) and explanations
 
-### Configure words and codes
+### Configure metrics and scores
 
-Edit `words.js` to control the selectable words and the exact 4-digit codes they map to. Example entry:
+Edit `words.js` to control the selectable metrics and their four category scores. Example entry:
 
 ```
-{ word: 'Alpha', digits: [1, 5, 3, 7] }
+{
+  word: 'PR Cycle Time',
+  digits: [8, 7, 6, 8], // [Ease of Gathering, Signal Strength, Resistance to Gaming, Objectivity]
+  explanations: [
+    'Easily pulled from Git provider APIs.',
+    'Shorter cycles typically reflect higher delivery velocity.',
+    'Harder to game without broader process changes.',
+    'Objective timestamps from system of record.'
+  ]
+}
 ```
 
-You can add/remove entries; the UI adapts automatically. Each digit must be 0–9.
-# copilot-value-metrics
+Scores are clamped to the 1–10 range. You can add/remove entries; the UI adapts automatically.
