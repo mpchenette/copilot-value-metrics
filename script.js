@@ -7,7 +7,13 @@
 
 const DIGITS = Array.from({ length: 10 }, (_, i) => String(i));
 const WHEEL_COUNT = 4;
-const NUMBER_LABELS = ['Digit 1', 'Digit 2', 'Digit 3', 'Digit 4'];
+// Category labels for metric scoring
+const NUMBER_LABELS = [
+  'Ease of Gathering',
+  'Signal Strength',
+  'Resistance to Gaming',
+  'Objectivity',
+];
 
 // Load static words + codes from words.js (window.WORDS_DATA).
 // Fallback to a minimal default if the file is missing.
