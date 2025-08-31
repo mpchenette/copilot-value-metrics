@@ -1,11 +1,10 @@
 /*
-  Simple 4-wheel digit selector
+  Simple 4-wheel score selector
   - Scroll, click up/down, or use keyboard arrows
-  - Snap to 0-9 items
-  - Emits current 4-digit code to readout
+  - Snap to 10 items (1–10)
 */
 
-const DIGITS = Array.from({ length: 10 }, (_, i) => String(i));
+const DIGITS = Array.from({ length: 10 }, (_, i) => String(i + 1));
 const WHEEL_COUNT = 4;
 // Category labels for metric scoring
 const NUMBER_LABELS = [
@@ -18,28 +17,26 @@ const NUMBER_LABELS = [
 // Load static words + codes from words.js (window.WORDS_DATA).
 // Fallback to a minimal default if the file is missing.
 const DEFAULT_WORDS_DATA = [
-  { word: 'Alpha', digits: [0, 0, 0, 0] },
-  { word: 'Bravo', digits: [1, 2, 3, 4] }
+  { word: 'Example A', digits: [1, 1, 1, 1] },
+  { word: 'Example B', digits: [2, 3, 4, 5] }
 ];
 
-function normalizeDigits(arr) {
-  return Array.from({ length: WHEEL_COUNT }, (_, i) => {
-    const n = Number(Array.isArray(arr) ? arr[i] : 0);
-    const v = Number.isFinite(n) ? Math.floor(n) : 0;
-    return Math.max(0, Math.min(9, v));
-  });
+function clampScore(x) {
+  const n = Number.isFinite(Number(x)) ? Math.floor(Number(x)) : 1;
+  return Math.max(1, Math.min(10, n));
 }
 
 const WORDS_DATA = Array.isArray(window.WORDS_DATA) && window.WORDS_DATA.length > 0
   ? window.WORDS_DATA
   : DEFAULT_WORDS_DATA;
 
-// Preprocess words: normalize digits, pad explanations, compute totals, then sort by total desc.
+// Preprocess words: clamp scores to 1–10, compute totals, map to 0–9 indices for wheels, then sort by total desc.
 const PROCESSED_WORDS = (WORDS_DATA || []).map(e => {
-  const digits = normalizeDigits(e.digits);
+  const scores = Array.from({ length: WHEEL_COUNT }, (_, i) => clampScore(Array.isArray(e.digits) ? e.digits[i] : 1));
+  const digits = scores.map(s => s - 1); // convert to 0–9 indices for wheels
   const ex = Array.isArray(e.explanations) ? e.explanations.slice(0, WHEEL_COUNT) : [];
   const explanations = Array.from({ length: WHEEL_COUNT }, (_, i) => ex[i] ?? '');
-  const total = digits.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
+  const total = scores.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
   return { word: e.word, digits, explanations, total };
 }).sort((a, b) => {
   if (b.total !== a.total) return b.total - a.total; // desc by total
@@ -56,9 +53,9 @@ function createNumberWheel(index, interactive = true) {
   wheel.className = 'wheel' + (interactive ? '' : ' static');
   wheel.setAttribute('role', 'spinbutton');
   wheel.setAttribute('aria-label', `Digit ${index + 1}`);
-  wheel.setAttribute('aria-valuemin', '0');
-  wheel.setAttribute('aria-valuemax', '9');
-  wheel.setAttribute('aria-valuenow', '0');
+  wheel.setAttribute('aria-valuemin', '1');
+  wheel.setAttribute('aria-valuemax', '10');
+  wheel.setAttribute('aria-valuenow', '1');
   if (interactive) {
     wheel.tabIndex = 0; // focus container for keyboard arrows
   } else {
@@ -101,7 +98,7 @@ function createNumberWheel(index, interactive = true) {
   wheel.append(btnUp, track, btnDown);
 
   // Helpers for current index/value
-  let currentValue = 0; // authoritative value to avoid mid-animation reads
+  let currentValue = 0; // stores index 0–9; exposed as score 1–10 via getter
   const TOTAL_ITEMS = REPEATS * 10;
   const MID_BLOCK_START = 10 * Math.floor(REPEATS / 2); // 10 with REPEATS=3
   const getDigitHeight = () => track.firstElementChild?.getBoundingClientRect().height ?? 60;
@@ -135,7 +132,7 @@ function createNumberWheel(index, interactive = true) {
   const setAriaSelected = (idx) => {
     const norm = ((idx % 10) + 10) % 10;
     [...track.children].forEach((el) => el.setAttribute('aria-selected', el.dataset.digit === String(norm) ? 'true' : 'false'));
-    const val = String(idx);
+    const val = String(idx + 1);
     wheel.setAttribute('aria-valuenow', val);
   };
 
@@ -222,8 +219,8 @@ function createNumberWheel(index, interactive = true) {
 
   return {
     el: wheel,
-    get value() { return currentValue; },
-    set value(v) { const vv = ((v % 10) + 10) % 10; currentValue = vv; updatePadding(); snapToIndex(vv, 'auto'); setAriaSelected(vv); },
+    get value() { return currentValue + 1; },
+    set value(v) { const s = clampScore(v); const idx = ((s - 1) % 10 + 10) % 10; currentValue = idx; updatePadding(); snapToIndex(idx, 'auto'); setAriaSelected(idx); },
     spinTo,
   };
 }
@@ -381,8 +378,7 @@ sumEl.textContent = '= 0';
 wheelsContainer.appendChild(sumEl);
 
 function updateReadout() {
-  const values = numberWheels.map(w => w.value);
-  const val = values.map(v => String(v)).join('');
+  const values = numberWheels.map(w => w.value); // scores 1–10
   const total = values.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
   if (sumEl) sumEl.textContent = `= ${total}`;
   // Keep the details badges in sync with the numbers
@@ -410,7 +406,8 @@ function updateDetails() {
     const badge = document.createElement('div');
     badge.className = 'detail-badge';
     badge.setAttribute('aria-label', `${labels[i]} value`);
-    badge.textContent = String(((digits[i] ?? 0) % 10 + 10) % 10);
+    const score = Number.isFinite(digits[i]) ? digits[i] : '';
+    badge.textContent = String(score);
 
     const content = document.createElement('div');
     content.className = 'detail-content';
