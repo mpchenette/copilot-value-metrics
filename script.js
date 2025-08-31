@@ -28,15 +28,21 @@ const WORDS_DATA = Array.isArray(window.WORDS_DATA) && window.WORDS_DATA.length 
   ? window.WORDS_DATA
   : DEFAULT_WORDS_DATA;
 
-const WORDS = WORDS_DATA.map(e => e.word);
-const WORD_TO_DIGITS = new Map(WORDS_DATA.map(e => [e.word, normalizeDigits(e.digits)]));
-const WORD_TO_EXPLANATIONS = new Map(WORDS_DATA.map(e => {
-  // Optional: provide up to 4 explanations matching the digits.
-  // If missing, we fall back to a simple placeholder per digit.
+// Preprocess words: normalize digits, pad explanations, compute totals, then sort by total desc.
+const PROCESSED_WORDS = (WORDS_DATA || []).map(e => {
+  const digits = normalizeDigits(e.digits);
   const ex = Array.isArray(e.explanations) ? e.explanations.slice(0, WHEEL_COUNT) : [];
-  const padded = Array.from({ length: WHEEL_COUNT }, (_, i) => ex[i] ?? '');
-  return [e.word, padded];
-}));
+  const explanations = Array.from({ length: WHEEL_COUNT }, (_, i) => ex[i] ?? '');
+  const total = digits.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
+  return { word: e.word, digits, explanations, total };
+}).sort((a, b) => {
+  if (b.total !== a.total) return b.total - a.total; // desc by total
+  return String(a.word).localeCompare(String(b.word)); // tiebreak by word asc
+});
+
+const WORDS = PROCESSED_WORDS.map(e => e.word);
+const WORD_TO_DIGITS = new Map(PROCESSED_WORDS.map(e => [e.word, e.digits]));
+const WORD_TO_EXPLANATIONS = new Map(PROCESSED_WORDS.map(e => [e.word, e.explanations]));
 
 /** Create a single NUMBER wheel element */
 function createNumberWheel(index, interactive = true) {
@@ -324,7 +330,7 @@ function createWordWheel(words, onSelectIndex) {
 
 // Mount
 const wheelsContainer = document.getElementById('wheels');
-const codeEl = document.getElementById('code');
+// Removed the "current value" readout; only keep sum/details.
 const detailsEl = document.getElementById('details');
 let sumEl = null; // inline total to the right of wheels
 let currentWordIdx = 0;
@@ -371,7 +377,6 @@ wheelsContainer.appendChild(sumEl);
 function updateReadout() {
   const values = numberWheels.map(w => w.value);
   const val = values.map(v => String(v)).join('');
-  codeEl.textContent = val.padEnd(WHEEL_COUNT, '0');
   const total = values.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
   if (sumEl) sumEl.textContent = `= ${total}`;
   // Keep the details badges in sync with the numbers

@@ -191,21 +191,7 @@ body {
 .wheel:not(.word) .digit { opacity: 0.35; }
 .wheel:not(.word) .digit[aria-selected="true"] { opacity: 1; }
 
-.readout {
-  display: grid;
-  place-items: center;
-  gap: 8px;
-}
-.readout .label { color: var(--muted); font-size: 14px; }
-.readout .code {
-  font-size: 42px;
-  letter-spacing: 8px;
-  font-weight: 700;
-  padding: 8px 14px;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.06);
-}
+/* (readout removed) */
 
 /* Details panel */
 .details {
@@ -262,6 +248,5 @@ body {
 @media (max-width: 520px) {
   .wheel { width: 64px; height: 200px; }
   .digit { height: 52px; font-size: 28px; }
-  .readout .code { font-size: 36px; }
   .details-grid { grid-template-columns: 1fr; }
 }
