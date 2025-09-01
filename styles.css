@@ -46,13 +46,35 @@ body {
 .wheels {
   display: flex;
   gap: 32px; /* more breathing room between columns */
-  padding: 28px; /* slightly larger padding */
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.2));
-  box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+  padding: 0; /* remove extra padding to avoid card feel */
+  border-radius: 0; /* no rounded container corners */
+  background: transparent; /* no container background */
+  box-shadow: none; /* remove outer shadow to hide the box */
   align-items: start;
-  /* Fix panel height so it doesn't shift during scroll */
-  min-height: 300px;
+  /* Let height be natural; no fixed panel height */
+  min-height: 0;
+  /* Allow horizontal scroll if metric names are wide */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Vertical separators between items (not at the edges) */
+.wheels > * { position: relative; }
+.wheels > * + :not(.sum)::before {
+  content: '';
+  position: absolute;
+  left: -16px; /* half the gap */
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.18) 18%,
+    rgba(255,255,255,0.18) 82%,
+    rgba(255,255,255,0) 100%
+  );
+  pointer-events: none;
 }
 
 /* Inline sum display to the right of the wheels */
@@ -77,21 +99,21 @@ body {
   align-items: center;
   width: 84px;
   height: 220px;
-  background: var(--panel);
+  background: transparent; /* flatten individual wheel boxes */
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.06);
+  border: none;
 }
 
-/* Wider wheel for metric names */
-.wheel.word { width: 220px; }
+/* Wider wheel for metric names — size to content and allow overflow visibility */
+.wheel.word { width: max-content; overflow: visible; }
 
 /* Static number wheels: just the track (labels live outside) */
 .wheel.static { grid-template-rows: 1fr; }
 
 /* Header label for number wheels */
 .wheel-label {
-  font-size: 12px;
+  font-size: 18px;
   color: var(--muted);
   text-align: center;
   padding: 6px 4px 0;
@@ -183,8 +205,13 @@ body {
   transition: opacity 160ms ease, color 160ms ease;
 }
 
-/* Smaller font for word items */
-.digit.word { font-size: 18px; padding: 0 10px; text-align: center; }
+/* Larger font for metric names */
+.digit.word {
+  font-size: 26px;
+  padding: 0 12px;
+  text-align: center;
+  white-space: nowrap;          /* keep names on a single line */
+}
 
 .digit[aria-selected="true"] { color: var(--accent-2); text-shadow: 0 0 16px rgba(56,189,248,0.35); }
 
@@ -254,6 +281,8 @@ body {
   .app-header h1 { font-size: 32px; }
   .app-header .sub { font-size: 14px; }
   .wheel { width: 72px; height: 200px; }
-  .wheel.word { width: 160px; }
+  .wheel.word { width: max-content; }
   .digit { height: 52px; font-size: 28px; }
+  .digit.word { font-size: 20px; }
+  .wheel-label { font-size: 15px; }
 }
