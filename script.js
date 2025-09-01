@@ -224,7 +224,7 @@ function createNumberWheel(index, interactive = true) {
 }
 
 /** Create the WORD wheel that drives the number wheels */
-function createWordWheel(words, onSelectIndex) {
+function createWordWheel(words, onSelectIndex, onScrollIndex) {
   const wheel = document.createElement('div');
   wheel.className = 'wheel word';
   wheel.setAttribute('role', 'group');
@@ -306,6 +306,8 @@ function createWordWheel(words, onSelectIndex) {
     onSelectIndex?.(idx);
   };
   track.addEventListener('scroll', () => {
+    // Live sync callback (e.g., mirror total wheel) while scrolling
+    onScrollIndex?.(getIndexFromScroll());
     if (scrollTimer) clearTimeout(scrollTimer);
     scrollTimer = setTimeout(onScrollSettled, 80);
   }, { passive: true });
@@ -323,6 +325,7 @@ function createWordWheel(words, onSelectIndex) {
     updatePadding();
     snapToIndex(0, 'auto');
     setAriaSelected(0);
+    onScrollIndex?.(0);
     onSelectIndex?.(0);
   });
 
@@ -335,9 +338,84 @@ const wheelsContainer = document.getElementById('wheels');
 const detailsEl = document.getElementById('details');
 let sumEl = null; // inline total to the right of wheels
 let currentWordIdx = 0;
+const isVariant2 = document.body?.dataset?.variant === '2';
+const TOTALS = PROCESSED_WORDS.map(e => e.total);
+
+// A static total wheel that mirrors the metric selector
+function createTotalWheel(totals) {
+  const wheel = document.createElement('div');
+  wheel.className = 'wheel total static';
+  wheel.setAttribute('role', 'group');
+  wheel.setAttribute('aria-label', 'Total score');
+  wheel.setAttribute('aria-readonly', 'true');
+  wheel.tabIndex = -1;
+
+  const track = document.createElement('div');
+  track.className = 'track';
+  track.setAttribute('role', 'listbox');
+  track.setAttribute('aria-label', 'Total scores list');
+
+  totals.forEach((t, i) => {
+    const item = document.createElement('div');
+    item.className = 'digit';
+    item.textContent = String(t);
+    item.setAttribute('role', 'option');
+    item.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+    track.appendChild(item);
+  });
+
+  wheel.append(track);
+
+  const getItemHeight = () => track.firstElementChild?.getBoundingClientRect().height ?? 60;
+  const getPad = () => parseFloat(getComputedStyle(track).paddingTop) || 0;
+  const updatePadding = () => {
+    const h = getItemHeight();
+    const pad = Math.max(0, Math.round(track.clientHeight / 2 - h / 2));
+    track.style.paddingTop = pad + 'px';
+    track.style.paddingBottom = pad + 'px';
+  };
+  const snapToIndex = (idx, behavior = 'smooth') => {
+    const h = getItemHeight();
+    const pad = getPad();
+    const y = pad + idx * h + h / 2 - track.clientHeight / 2;
+    track.scrollTo({ top: y, behavior });
+  };
+  const getIndexFromScroll = () => {
+    const h = getItemHeight();
+    const pad = getPad();
+    const center = track.scrollTop + track.clientHeight / 2;
+    const idx = Math.round((center - pad - h / 2) / h);
+    return Math.max(0, Math.min(totals.length - 1, idx));
+  };
+  const setAriaSelected = (idx) => {
+    [...track.children].forEach((el, i) => el.setAttribute('aria-selected', i === idx ? 'true' : 'false'));
+  };
+
+  // Prevent manual scrolling
+  track.addEventListener('wheel', (e) => e.preventDefault(), { passive: false });
+  track.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+  track.addEventListener('pointerdown', (e) => e.preventDefault());
+
+  const handleResize = () => {
+    const current = getIndexFromScroll();
+    updatePadding();
+    snapToIndex(current, 'auto');
+    setAriaSelected(current);
+  };
+  window.addEventListener('resize', handleResize);
+
+  requestAnimationFrame(() => {
+    updatePadding();
+    snapToIndex(0, 'auto');
+    setAriaSelected(0);
+  });
+
+  return { el: wheel, get index() { return getIndexFromScroll(); }, set index(v) { snapToIndex(v, 'auto'); setAriaSelected(v); } };
+}
 
 // Number wheels are static (non-interactive)
 const numberWheels = Array.from({ length: WHEEL_COUNT }, (_, i) => createNumberWheel(i, /* interactive */ false));
+let totalWheel = null;
 
 // Word wheel controls the number wheels
 const wordWheel = createWordWheel(WORDS, (wordIdx) => {
@@ -348,7 +426,14 @@ const wordWheel = createWordWheel(WORDS, (wordIdx) => {
     // Spin forward at least one full turn for effect
     w.spinTo(scoreIdx[i], { turns: 1, direction: 'forward' });
   });
+  if (isVariant2 && totalWheel) {
+    totalWheel.index = wordIdx;
+  }
   updateReadout();
+}, (scrollIdx) => {
+  if (isVariant2 && totalWheel) {
+    totalWheel.index = scrollIdx;
+  }
 });
 
 // Append in order: word wheel first, with an empty label to align tops
@@ -359,6 +444,17 @@ wordSpacer.className = 'wheel-label';
 wordSpacer.textContent = ' '; // spacer to reserve label height
 wordCol.append(wordSpacer, wordWheel.el);
 wheelsContainer.appendChild(wordCol);
+// Insert total wheel between metric selector and score columns (variant 2)
+if (isVariant2) {
+  totalWheel = createTotalWheel(TOTALS);
+  const col = document.createElement('div');
+  col.className = 'wheel-col';
+  const label = document.createElement('div');
+  label.className = 'wheel-label';
+  label.textContent = 'Total';
+  col.append(label, totalWheel.el);
+  wheelsContainer.appendChild(col);
+}
 numberWheels.forEach((w, i) => {
   const col = document.createElement('div');
   col.className = 'wheel-col';
@@ -368,11 +464,13 @@ numberWheels.forEach((w, i) => {
   col.append(label, w.el);
   wheelsContainer.appendChild(col);
 });
-// Add inline sum element at the end
-sumEl = document.createElement('div');
-sumEl.className = 'sum';
-sumEl.textContent = '= 0';
-wheelsContainer.appendChild(sumEl);
+// Add inline sum element at the end (only in variant 1)
+if (!isVariant2) {
+  sumEl = document.createElement('div');
+  sumEl.className = 'sum';
+  sumEl.textContent = '= 0';
+  wheelsContainer.appendChild(sumEl);
+}
 
 function updateReadout() {
   const values = numberWheels.map(w => w.value); // scores 1–10

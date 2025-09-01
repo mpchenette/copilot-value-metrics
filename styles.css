@@ -23,6 +23,29 @@ body {
   text-align: center;
   padding: 24px 16px 8px;
 }
+.variant-nav {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.btn-variant {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  font-weight: 600;
+}
+.btn-variant:hover { background: rgba(255,255,255,0.12); }
+.btn-variant.active {
+  color: var(--accent-2);
+  box-shadow: 0 0 10px rgba(56,189,248,0.25) inset;
+}
 .app-header h1 { margin: 0 0 6px; font-weight: 700; font-size: 44px; line-height: 1.15; }
 .app-header .sub { margin: 0; color: var(--muted); font-size: 18px; }
 
@@ -132,6 +155,8 @@ body {
 .wheel.static .track { touch-action: none; }
 
 .wheel:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* Remove focus outline for the metric selector specifically */
+.wheel.word:focus-within { outline: none; }
 
 .wheel .btn {
   appearance: none;
