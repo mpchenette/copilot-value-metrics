@@ -26,18 +26,18 @@ const WORDS_DATA = Array.isArray(window.WORDS_DATA) ? window.WORDS_DATA : [];
 // Preprocess words: clamp scores to 1–10, compute totals, map to 0–9 indices for wheels, then sort by total desc.
 const PROCESSED_WORDS = (WORDS_DATA || []).map(e => {
   const scores = Array.from({ length: WHEEL_COUNT }, (_, i) => clampScore(Array.isArray(e.digits) ? e.digits[i] : 1));
-  const digits = scores.map(s => s - 1); // convert to 0–9 indices for wheels
+  const scoreIndices = scores.map(s => s - 1); // convert to 0–9 indices for wheels
   const ex = Array.isArray(e.explanations) ? e.explanations.slice(0, WHEEL_COUNT) : [];
   const explanations = Array.from({ length: WHEEL_COUNT }, (_, i) => ex[i] ?? '');
   const total = scores.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
-  return { word: e.word, digits, explanations, total };
+  return { word: e.word, scoreIndices, explanations, total };
 }).sort((a, b) => {
   if (b.total !== a.total) return b.total - a.total; // desc by total
   return String(a.word).localeCompare(String(b.word)); // tiebreak by word asc
 });
 
 const WORDS = PROCESSED_WORDS.map(e => e.word);
-const WORD_TO_DIGITS = new Map(PROCESSED_WORDS.map(e => [e.word, e.digits]));
+const WORD_TO_SCORE_INDICES = new Map(PROCESSED_WORDS.map(e => [e.word, e.scoreIndices]));
 const WORD_TO_EXPLANATIONS = new Map(PROCESSED_WORDS.map(e => [e.word, e.explanations]));
 
 /** Create a single NUMBER wheel element */
@@ -342,11 +342,11 @@ const numberWheels = Array.from({ length: WHEEL_COUNT }, (_, i) => createNumberW
 // Word wheel controls the number wheels
 const wordWheel = createWordWheel(WORDS, (wordIdx) => {
   const word = WORDS[wordIdx];
-  const digits = WORD_TO_DIGITS.get(word) || [0, 0, 0, 0];
+  const scoreIdx = WORD_TO_SCORE_INDICES.get(word) || [0, 0, 0, 0];
   currentWordIdx = wordIdx;
   numberWheels.forEach((w, i) => {
     // Spin forward at least one full turn for effect
-    w.spinTo(digits[i], { turns: 1, direction: 'forward' });
+    w.spinTo(scoreIdx[i], { turns: 1, direction: 'forward' });
   });
   updateReadout();
 });
@@ -389,7 +389,7 @@ function updateDetails() {
   if (!detailsEl) return;
   const word = WORDS[currentWordIdx] || '';
   const labels = NUMBER_LABELS;
-  const digits = numberWheels.map(w => w.value);
+  const scores = numberWheels.map(w => w.value);
   const ex = WORD_TO_EXPLANATIONS.get(word) || [];
 
   // Build items
@@ -400,8 +400,8 @@ function updateDetails() {
 
     const badge = document.createElement('div');
     badge.className = 'detail-badge';
-    badge.setAttribute('aria-label', `${labels[i]} value`);
-    const score = Number.isFinite(digits[i]) ? digits[i] : '';
+    badge.setAttribute('aria-label', `${labels[i]} score`);
+    const score = Number.isFinite(scores[i]) ? scores[i] : '';
     badge.textContent = String(score);
 
     const content = document.createElement('div');
@@ -409,7 +409,7 @@ function updateDetails() {
 
     const title = document.createElement('div');
     title.className = 'detail-title';
-    title.textContent = labels[i] || `Digit ${i + 1}`;
+    title.textContent = labels[i] || `Category ${i + 1}`;
 
     const text = document.createElement('div');
     text.className = 'detail-text';

@@ -83,8 +83,8 @@ body {
   border: 1px solid rgba(255,255,255,0.06);
 }
 
-/* Wider wheel for words */
-.wheel.word { width: 180px; }
+/* Wider wheel for metric names */
+.wheel.word { width: 220px; }
 
 /* Static number wheels: just the track (labels live outside) */
 .wheel.static { grid-template-rows: 1fr; }
@@ -254,5 +254,6 @@ body {
   .app-header h1 { font-size: 32px; }
   .app-header .sub { font-size: 14px; }
   .wheel { width: 72px; height: 200px; }
+  .wheel.word { width: 160px; }
   .digit { height: 52px; font-size: 28px; }
 }
