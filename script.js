@@ -489,34 +489,74 @@ function updateDetails() {
   const labels = NUMBER_LABELS;
   const scores = numberWheels.map(w => w.value);
   const ex = WORD_TO_EXPLANATIONS.get(word) || [];
+  const total = scores.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
 
   // Build items
   detailsEl.innerHTML = '';
-  for (let i = 0; i < WHEEL_COUNT; i++) {
-    const item = document.createElement('div');
-    item.className = 'detail-item';
+  if (isVariant2) {
+    // Collapsible trays (Variant 2)
+    for (let i = 0; i < WHEEL_COUNT; i++) {
+      const detail = document.createElement('details');
+      detail.className = 'detail-item';
 
-    const badge = document.createElement('div');
-    badge.className = 'detail-badge';
-    badge.setAttribute('aria-label', `${labels[i]} score`);
-    const score = Number.isFinite(scores[i]) ? scores[i] : '';
-    badge.textContent = String(score);
+      const summary = document.createElement('summary');
+      summary.className = 'detail-summary';
 
-    const content = document.createElement('div');
-    content.className = 'detail-content';
+      const caret = document.createElement('div');
+      caret.className = 'detail-caret';
+      caret.textContent = '▾';
 
-    const title = document.createElement('div');
-    title.className = 'detail-title';
-    title.textContent = labels[i] || `Category ${i + 1}`;
+      const badge = document.createElement('div');
+      badge.className = 'detail-badge';
+      badge.setAttribute('aria-label', `${labels[i]} score`);
+      const score = Number.isFinite(scores[i]) ? scores[i] : '';
+      badge.textContent = String(score);
 
-    const text = document.createElement('div');
-    text.className = 'detail-text';
-    const expl = (ex[i] || '').trim();
-    text.textContent = expl || 'No explanation provided.';
+      const title = document.createElement('div');
+      title.className = 'detail-title';
+      title.textContent = labels[i] || `Category ${i + 1}`;
 
-    content.append(title, text);
-    item.append(badge, content);
-    detailsEl.appendChild(item);
+      summary.append(caret, badge, title);
+
+      const body = document.createElement('div');
+      body.className = 'detail-body';
+      const text = document.createElement('div');
+      text.className = 'detail-text';
+      const expl = (ex[i] || '').trim();
+      text.textContent = expl || 'No explanation provided.';
+      body.append(text);
+
+      detail.append(summary, body);
+      detailsEl.appendChild(detail);
+    }
+  } else {
+    // Static stacked rows (Variant 1)
+    for (let i = 0; i < WHEEL_COUNT; i++) {
+      const item = document.createElement('div');
+      item.className = 'detail-item row';
+
+      const badge = document.createElement('div');
+      badge.className = 'detail-badge';
+      badge.setAttribute('aria-label', `${labels[i]} score`);
+      const score = Number.isFinite(scores[i]) ? scores[i] : '';
+      badge.textContent = String(score);
+
+      const content = document.createElement('div');
+      content.className = 'detail-content';
+
+      const title = document.createElement('div');
+      title.className = 'detail-title';
+      title.textContent = labels[i] || `Category ${i + 1}`;
+
+      const text = document.createElement('div');
+      text.className = 'detail-text';
+      const expl = (ex[i] || '').trim();
+      text.textContent = expl || 'No explanation provided.';
+
+      content.append(title, text);
+      item.append(badge, content);
+      detailsEl.appendChild(item);
+    }
   }
 }
 
