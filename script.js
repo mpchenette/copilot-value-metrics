@@ -413,8 +413,8 @@ function createTotalWheel(totals) {
   return { el: wheel, get index() { return getIndexFromScroll(); }, set index(v) { snapToIndex(v, 'auto'); setAriaSelected(v); } };
 }
 
-// Number wheels are static (non-interactive)
-const numberWheels = Array.from({ length: WHEEL_COUNT }, (_, i) => createNumberWheel(i, /* interactive */ false));
+// Number wheels are static (non-interactive) — skipped entirely in Variant 2
+const numberWheels = isVariant2 ? [] : Array.from({ length: WHEEL_COUNT }, (_, i) => createNumberWheel(i, /* interactive */ false));
 let totalWheel = null;
 
 // Word wheel controls the number wheels
@@ -455,6 +455,16 @@ if (isVariant2) {
   col.append(label, totalWheel.el);
   wheelsContainer.appendChild(col);
 }
+// Variant 2: move details panel into the wheels row as the right-most column
+if (isVariant2) {
+  const detailsSection = document.querySelector('.details');
+  if (detailsSection) {
+    const detailsCol = document.createElement('div');
+    detailsCol.className = 'wheel-col details-col';
+    detailsCol.append(detailsSection);
+    wheelsContainer.appendChild(detailsCol);
+  }
+}
 numberWheels.forEach((w, i) => {
   const col = document.createElement('div');
   col.className = 'wheel-col';
@@ -473,10 +483,12 @@ if (!isVariant2) {
 }
 
 function updateReadout() {
-  const values = numberWheels.map(w => w.value); // scores 1–10
-  const total = values.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
-  if (sumEl) sumEl.textContent = `= ${total}`;
-  // Keep the details badges in sync with the numbers
+  if (!isVariant2) {
+    const values = numberWheels.map(w => w.value); // scores 1–10
+    const total = values.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
+    if (sumEl) sumEl.textContent = `= ${total}`;
+  }
+  // Keep the details in sync
   updateDetails();
 }
 
@@ -487,7 +499,9 @@ function updateDetails() {
   if (!detailsEl) return;
   const word = WORDS[currentWordIdx] || '';
   const labels = NUMBER_LABELS;
-  const scores = numberWheels.map(w => w.value);
+  const scores = isVariant2
+    ? (PROCESSED_WORDS[currentWordIdx]?.scoreIndices || Array(WHEEL_COUNT).fill(0)).map(s => s + 1)
+    : numberWheels.map(w => w.value);
   const ex = WORD_TO_EXPLANATIONS.get(word) || [];
   const total = scores.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
 
