@@ -252,11 +252,7 @@ body {
   display: grid;
   gap: 12px;
 }
-.details .details-header {
-  text-align: center;
-  color: var(--muted);
-  font-size: 14px;
-}
+/* (details header removed) */
 .details-grid {
   display: flex;
   flex-direction: column;
