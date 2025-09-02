@@ -332,6 +332,28 @@ body[data-variant="2"] .detail-badge {
   font-variant-numeric: tabular-nums;
   padding: 0 4px;
 }
+
+/* Variant 2: add outlines to visualize boxes for simplification */
+body[data-variant="2"] .wheels { outline: 1px dashed rgba(255,255,255,0.12); outline-offset: 4px; }
+body[data-variant="2"] .wheel-col { outline: 1px solid rgba(255,255,255,0.18); outline-offset: -2px; border-radius: 8px; }
+body[data-variant="2"] .wheel { outline: 1px dashed rgba(255,255,255,0.18); outline-offset: -2px; border-radius: 12px; }
+body[data-variant="2"] .details-grid { outline: 1px solid rgba(255,255,255,0.18); outline-offset: -2px; border-radius: 8px; }
+body[data-variant="2"] .detail-item { outline: 1px dashed rgba(255,255,255,0.18); border-radius: 6px; margin: 4px 0; }
+
+/* Variant 2: scale up UI ~1.6x for readability */
+body[data-variant="2"] .wheels { gap: 48px; }
+body[data-variant="2"] .wheel { width: 126px; height: 330px; }
+body[data-variant="2"] .digit { height: 90px; font-size: 48px; }
+body[data-variant="2"] .wheel.word .digit.word { font-size: 40px; padding: 0 16px; }
+body[data-variant="2"] .wheel-label { font-size: 28px; }
+body[data-variant="2"] .wheel .btn { padding: 12px 0; font-size: 18px; }
+/* Adjust separator symbol hitbox to match larger gap */
+body[data-variant="2"] .wheels > * + *::before { width: 48px; left: -24px; }
+/* Details typography scale */
+body[data-variant="2"] .detail-badge { font-size: 48px; }
+body[data-variant="2"] .detail-title { font-size: 22px; }
+body[data-variant="2"] .detail-text { font-size: 20px; line-height: 1.75rem; }
+body[data-variant="2"] .detail-caret { font-size: 18px; }
 .detail-content {
   display: grid;
   gap: 4px;
