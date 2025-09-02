@@ -343,7 +343,8 @@ body[data-variant="2"] .detail-item { outline: 1px dashed rgba(255,255,255,0.18)
 /* Variant 2: scale up UI ~1.6x for readability */
 /* Variant 2: increase inter-column spacing for more breathing room */
 body[data-variant="2"] .wheels { gap: 80px; }
-body[data-variant="2"] .wheel { width: 126px; height: 330px; }
+/* Make wheels taller so ~5 items are visible in the viewport */
+body[data-variant="2"] .wheel { width: 126px; height: 560px; }
 body[data-variant="2"] .digit { height: 90px; font-size: 48px; }
 /* Ensure metric selector (word wheel) fully expands to its content on one line */
 body[data-variant="2"] .wheel.word { width: max-content; overflow: visible; }
@@ -357,6 +358,8 @@ body[data-variant="2"] .detail-badge { font-size: 48px; }
 body[data-variant="2"] .detail-title { font-size: 22px; }
 body[data-variant="2"] .detail-text { font-size: 20px; line-height: 1.75rem; }
 body[data-variant="2"] .detail-caret { font-size: 18px; }
+/* Ensure details pane feels taller to match increased wheel height */
+body[data-variant="2"] .details-col .details-grid { min-height: 560px; }
 .detail-content {
   display: grid;
   gap: 4px;
