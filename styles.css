@@ -426,6 +426,9 @@ body[data-variant="2"] .details-col .details {
   display: grid;
   align-content: center; /* centers details-grid when shorter than 560px */
 }
+/* Make the Breakdown column wider by letting it flex-grow and removing max-width */
+body[data-variant="2"] .wheels .details-col { flex: 1 1 720px; min-width: 560px; }
+body[data-variant="2"] .details-col .details { max-width: none; width: 100%; }
 body[data-variant="2"] .details-col .details-grid { min-height: 0; }
 .detail-content {
   display: grid;
