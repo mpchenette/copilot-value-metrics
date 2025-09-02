@@ -397,8 +397,13 @@ body[data-variant="2"] .detail-badge { font-size: 48px; }
 body[data-variant="2"] .detail-title { font-size: 22px; }
 body[data-variant="2"] .detail-text { font-size: 20px; line-height: 1.75rem; }
 body[data-variant="2"] .detail-caret { font-size: 18px; }
-/* Ensure details pane feels taller to match increased wheel height */
-body[data-variant="2"] .details-col .details-grid { min-height: 560px; }
+/* Variant 2 layout behavior: keep columns pinned while details scrolls */
+body[data-variant="2"] .app-main { place-items: center; }
+body[data-variant="2"] .selector { place-items: center; }
+/* Fix the details column height and allow internal scrolling so expanding
+   a row only pushes rows below within the pane, not the whole layout. */
+body[data-variant="2"] .details-col .details { height: 560px; overflow-y: auto; }
+body[data-variant="2"] .details-col .details-grid { min-height: 0; }
 .detail-content {
   display: grid;
   gap: 4px;
