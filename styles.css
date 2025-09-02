@@ -392,11 +392,24 @@ body[data-variant="2"] .wheel-label { font-size: 28px; }
 body[data-variant="2"] .wheel .btn { padding: 12px 0; font-size: 18px; }
 /* Adjust separator visual to align with larger gap */
 body[data-variant="2"] .wheels > * + *::before { width: 80px; left: -40px; }
+/* Bigger operator size for Variant 2 and auto width */
+body[data-variant="2"] .wheels .sum { width: auto; font-size: 48px; padding: 0 16px; }
 /* Details typography scale */
 body[data-variant="2"] .detail-badge { font-size: 48px; }
 body[data-variant="2"] .detail-title { font-size: 22px; }
 body[data-variant="2"] .detail-text { font-size: 20px; line-height: 1.75rem; }
 body[data-variant="2"] .detail-caret { font-size: 18px; }
+/* Show trailing + in each summary except last; add a column for it */
+/* Revert summary grid to 3 columns in Variant 2 */
+body[data-variant="2"] .detail-summary { grid-template-columns: auto auto 1fr; }
+/* Separator plus between categories */
+body[data-variant="2"] .detail-sep {
+  text-align: center;
+  color: var(--muted);
+  font-size: 32px;
+  line-height: 1;
+  padding: 4px 0 6px;
+}
 /* Variant 2 layout behavior: keep columns pinned while details scrolls */
 body[data-variant="2"] .app-main { place-items: center; }
 body[data-variant="2"] .selector { place-items: center; }

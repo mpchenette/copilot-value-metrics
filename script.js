@@ -445,16 +445,23 @@ wordSpacer.textContent = 'Metric';
 wordCol.append(wordSpacer, wordWheel.el);
 wheelsContainer.appendChild(wordCol);
 // Insert total wheel between metric selector and score columns (variant 2)
-if (isVariant2) {
-  totalWheel = createTotalWheel(TOTALS);
-  const col = document.createElement('div');
-  col.className = 'wheel-col';
-  const label = document.createElement('div');
-  label.className = 'wheel-label';
-  label.textContent = 'Score';
-  col.append(label, totalWheel.el);
-  wheelsContainer.appendChild(col);
-}
+  if (isVariant2) {
+    totalWheel = createTotalWheel(TOTALS);
+    const col = document.createElement('div');
+    col.className = 'wheel-col';
+    const label = document.createElement('div');
+    label.className = 'wheel-label';
+    label.textContent = 'Score';
+    col.append(label, totalWheel.el);
+    wheelsContainer.appendChild(col);
+
+    // Insert a visual equals operator between Score and Breakdown
+    const eq = document.createElement('div');
+    eq.className = 'sum equals';
+    eq.setAttribute('aria-hidden', 'true');
+    eq.textContent = '=';
+    wheelsContainer.appendChild(eq);
+  }
 // Variant 2: move details panel into the wheels row as the right-most column
 if (isVariant2) {
   const detailsSection = document.querySelector('.details');
@@ -545,6 +552,14 @@ function updateDetails() {
 
       detail.append(summary, body);
       detailsEl.appendChild(detail);
+      // Insert a separator plus between categories (not after the last)
+      if (i < WHEEL_COUNT - 1) {
+        const sep = document.createElement('div');
+        sep.className = 'detail-sep';
+        sep.setAttribute('aria-hidden', 'true');
+        sep.textContent = '+';
+        detailsEl.appendChild(sep);
+      }
     }
   } else {
     // Static stacked rows (Variant 1)
