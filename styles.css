@@ -403,6 +403,12 @@ body[data-variant="2"] .wheel .btn { padding: 12px 0; font-size: 18px; }
 body[data-variant="2"] .wheels > * + *::before { width: 1px; left: -40px; }
 /* Bigger operator size for Variant 2 and auto width */
 body[data-variant="2"] .wheels .sum { width: auto; font-size: 48px; padding: 0 16px; }
+/* Center the static score vertically within its column while keeping the title at top */
+body[data-variant="2"] .sum.score {
+  display: grid;
+  place-items: center;
+  min-height: 560px; /* match wheel height for vertical centering */
+}
 /* Details typography scale */
 body[data-variant="2"] .detail-badge { font-size: 48px; }
 body[data-variant="2"] .detail-title { font-size: 22px; }

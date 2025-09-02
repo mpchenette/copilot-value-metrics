@@ -451,7 +451,8 @@ function createTotalWheel(totals) {
 
 // Number wheels are static (non-interactive) — skipped entirely in Variant 2
 const numberWheels = isVariant2 ? [] : Array.from({ length: WHEEL_COUNT }, (_, i) => createNumberWheel(i, /* interactive */ false));
-let totalWheel = null;
+let totalWheel = null; // deprecated in variant 2
+let scoreEl = null;    // static score display for variant 2
 
 // Word wheel controls the number wheels
 const wordWheel = createWordWheel(WORDS, (wordIdx) => {
@@ -462,18 +463,21 @@ const wordWheel = createWordWheel(WORDS, (wordIdx) => {
     // Spin forward at least one full turn for effect
     w.spinTo(scoreIdx[i], { turns: 1, direction: 'forward' });
   });
-  if (isVariant2 && totalWheel) {
-    totalWheel.index = wordIdx;
+  if (isVariant2 && scoreEl) {
+    const total = TOTALS[wordIdx] ?? 0;
+    scoreEl.textContent = String(total);
+    scoreEl.style.color = scoreToColor(total, 40);
   }
   updateReadout();
 }, (scrollIdx) => {
-  if (isVariant2 && totalWheel) {
-    totalWheel.index = scrollIdx;
+  // Live update score readout to nearest item while scrolling
+  if (isVariant2 && scoreEl) {
+    const total = TOTALS[scrollIdx] ?? 0;
+    scoreEl.textContent = String(total);
+    scoreEl.style.color = scoreToColor(total, 40);
   }
 }, (scrollProgress) => {
-  if (isVariant2 && totalWheel && Number.isFinite(scrollProgress)) {
-    totalWheel.setProgress(scrollProgress);
-  }
+  // No-op: static score readout has no scroller
 });
 
 // Append in order: word wheel first, with an empty label to align tops
@@ -486,13 +490,20 @@ wordCol.append(wordSpacer, wordWheel.el);
 wheelsContainer.appendChild(wordCol);
 // Insert total wheel between metric selector and score columns (variant 2)
   if (isVariant2) {
-    totalWheel = createTotalWheel(TOTALS);
+    // Static score readout (no scroller), shows current metric's total
     const col = document.createElement('div');
     col.className = 'wheel-col';
     const label = document.createElement('div');
     label.className = 'wheel-label';
     label.textContent = 'Score';
-    col.append(label, totalWheel.el);
+    scoreEl = document.createElement('div');
+    scoreEl.className = 'sum score';
+    const initial = TOTALS[0] ?? 0;
+    scoreEl.textContent = String(initial);
+    scoreEl.style.color = scoreToColor(initial, 40);
+    scoreEl.setAttribute('aria-live', 'polite');
+    scoreEl.setAttribute('aria-label', 'Total score for selected metric');
+    col.append(label, scoreEl);
     wheelsContainer.appendChild(col);
 
     // Insert a visual equals operator between Score and Breakdown
