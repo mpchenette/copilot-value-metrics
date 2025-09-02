@@ -284,6 +284,10 @@ body {
 .detail-summary::marker { content: ''; }
 .detail-body { padding: 0 0 12px 0; }
 .detail-caret { color: var(--muted); width: 16px; text-align: center; }
+/* Caret styling and interaction */
+body[data-variant="2"] .detail-caret { width: 24px; display: grid; place-items: center; }
+body[data-variant="2"] .detail-caret svg { width: 18px; height: 18px; transition: transform 160ms ease; }
+body[data-variant="2"] details[open] .detail-caret svg { transform: rotate(180deg); }
 .detail-badge {
   display: grid;
   place-items: center;
@@ -400,8 +404,8 @@ body[data-variant="2"] .detail-title { font-size: 22px; }
 body[data-variant="2"] .detail-text { font-size: 20px; line-height: 1.75rem; }
 body[data-variant="2"] .detail-caret { font-size: 18px; }
 /* Show trailing + in each summary except last; add a column for it */
-/* Revert summary grid to 3 columns in Variant 2 */
-body[data-variant="2"] .detail-summary { grid-template-columns: auto auto 1fr; }
+/* Summary layout: badge | title | caret-right */
+body[data-variant="2"] .detail-summary { grid-template-columns: auto 1fr auto; }
 /* Separator plus between categories */
 body[data-variant="2"] .detail-sep {
   text-align: center;

@@ -526,9 +526,23 @@ function updateDetails() {
       const summary = document.createElement('summary');
       summary.className = 'detail-summary';
 
+      // Right-aligned chevron caret (SVG)
       const caret = document.createElement('div');
       caret.className = 'detail-caret';
-      caret.textContent = '▾';
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(svgNS, 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('width', '20');
+      svg.setAttribute('height', '20');
+      const path = document.createElementNS(svgNS, 'path');
+      path.setAttribute('d', 'M6 9l6 6 6-6');
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', 'currentColor');
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('stroke-linecap', 'round');
+      path.setAttribute('stroke-linejoin', 'round');
+      svg.appendChild(path);
+      caret.appendChild(svg);
 
       const badge = document.createElement('div');
       badge.className = 'detail-badge';
@@ -540,7 +554,8 @@ function updateDetails() {
       title.className = 'detail-title';
       title.textContent = labels[i] || `Category ${i + 1}`;
 
-      summary.append(caret, badge, title);
+      // Order: badge, title, caret on the right
+      summary.append(badge, title, caret);
 
       const body = document.createElement('div');
       body.className = 'detail-body';
