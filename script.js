@@ -353,6 +353,14 @@ let currentWordIdx = 0;
 const isVariant2 = document.body?.dataset?.variant === '2';
 const TOTALS = PROCESSED_WORDS.map(e => e.total);
 
+// Map a score (0..max) to a red→green hue (0→120)
+function scoreToColor(score, max = 40) {
+  const s = Math.max(0, Math.min(max, Number(score) || 0));
+  const hue = (s / max) * 120; // 0=red, 120=green
+  // Bright, readable on dark background
+  return `hsl(${hue}, 90%, 55%)`;
+}
+
 // A static total wheel that mirrors the metric selector
 function createTotalWheel(totals) {
   const wheel = document.createElement('div');
@@ -373,6 +381,8 @@ function createTotalWheel(totals) {
     item.textContent = String(t);
     item.setAttribute('role', 'option');
     item.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+    // Color code each total from red (0) to green (40)
+    item.style.color = scoreToColor(t, 40);
     track.appendChild(item);
   });
 
@@ -526,7 +536,11 @@ function updateReadout() {
   if (!isVariant2) {
     const values = numberWheels.map(w => w.value); // scores 1–10
     const total = values.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
-    if (sumEl) sumEl.textContent = `= ${total}`;
+    if (sumEl) {
+      sumEl.textContent = `= ${total}`;
+      // Apply color from red (0) to bright green (40)
+      sumEl.style.color = scoreToColor(total, 40);
+    }
   }
   // Keep the details in sync
   updateDetails();

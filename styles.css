@@ -229,6 +229,8 @@ body {
   color: var(--muted);
   transition: opacity 160ms ease, color 160ms ease;
 }
+/* Make all numeric scores bold (excludes metric names) */
+.wheel:not(.word) .digit { font-weight: 700; }
 
 /* Larger font for metric names */
 .digit.word {
@@ -236,9 +238,12 @@ body {
   padding: 0 12px;
   text-align: center;
   white-space: nowrap;          /* keep names on a single line */
+  font-weight: 700;             /* make metric names bold */
 }
 
 .digit[aria-selected="true"] { color: var(--accent-2); text-shadow: 0 0 16px rgba(56,189,248,0.35); }
+/* Preserve custom coloring for the total wheel digits */
+.wheel.total .digit[aria-selected="true"] { color: inherit; text-shadow: none; }
 
 /* Dim unselected digits in number wheels (not the word wheel) */
 .wheel:not(.word) .digit { opacity: 0.35; }
