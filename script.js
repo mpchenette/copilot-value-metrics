@@ -291,8 +291,16 @@ function createWordWheel(words, onSelectIndex, onScrollIndex, onScrollProgress) 
     const raw = (center - pad - h / 2) / h;
     return Math.max(0, Math.min(words.length - 1, raw));
   };
+  // Optimize ARIA selection updates to only touch changed nodes
+  let lastSelectedIdx = -1;
   const setAriaSelected = (idx) => {
-    [...track.children].forEach((el, i) => el.setAttribute('aria-selected', i === idx ? 'true' : 'false'));
+    const clamped = Math.max(0, Math.min(words.length - 1, idx|0));
+    if (clamped === lastSelectedIdx) return;
+    const prev = track.children[lastSelectedIdx];
+    if (prev) prev.setAttribute('aria-selected', 'false');
+    const next = track.children[clamped];
+    if (next) next.setAttribute('aria-selected', 'true');
+    lastSelectedIdx = clamped;
   };
   const step = (delta) => {
     const idx = getIndexFromScroll();
@@ -316,10 +324,19 @@ function createWordWheel(words, onSelectIndex, onScrollIndex, onScrollProgress) 
     setAriaSelected(idx);
     onSelectIndex?.(idx);
   };
+  // Realtime highlight while scrolling using rAF throttle
+  let rafId = null;
   track.addEventListener('scroll', () => {
-    // Live sync callback (e.g., mirror total wheel) while scrolling
-    onScrollIndex?.(getIndexFromScroll());
-    onScrollProgress?.(getIndexFloatFromScroll());
+    if (rafId == null) {
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const liveIdx = getIndexFromScroll();
+        setAriaSelected(liveIdx);
+        // Live sync callback (e.g., mirror total wheel) while scrolling
+        onScrollIndex?.(liveIdx);
+        onScrollProgress?.(getIndexFloatFromScroll());
+      });
+    }
     if (scrollTimer) clearTimeout(scrollTimer);
     scrollTimer = setTimeout(onScrollSettled, 80);
   }, { passive: true });
