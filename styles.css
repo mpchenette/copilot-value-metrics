@@ -402,7 +402,13 @@ body[data-variant="2"] .app-main { place-items: center; }
 body[data-variant="2"] .selector { place-items: center; }
 /* Fix the details column height and allow internal scrolling so expanding
    a row only pushes rows below within the pane, not the whole layout. */
-body[data-variant="2"] .details-col .details { height: 560px; overflow-y: auto; }
+/* Center the Breakdown content within its box when there is extra space */
+body[data-variant="2"] .details-col .details {
+  height: 560px;
+  overflow-y: auto;
+  display: grid;
+  align-content: center; /* centers details-grid when shorter than 560px */
+}
 body[data-variant="2"] .details-col .details-grid { min-height: 0; }
 .detail-content {
   display: grid;

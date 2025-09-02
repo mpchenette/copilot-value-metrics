@@ -441,7 +441,7 @@ const wordCol = document.createElement('div');
 wordCol.className = 'wheel-col';
 const wordSpacer = document.createElement('div');
 wordSpacer.className = 'wheel-label';
-wordSpacer.textContent = ' '; // spacer to reserve label height
+wordSpacer.textContent = 'Metric';
 wordCol.append(wordSpacer, wordWheel.el);
 wheelsContainer.appendChild(wordCol);
 // Insert total wheel between metric selector and score columns (variant 2)
@@ -451,7 +451,7 @@ if (isVariant2) {
   col.className = 'wheel-col';
   const label = document.createElement('div');
   label.className = 'wheel-label';
-  label.textContent = 'Total';
+  label.textContent = 'Score';
   col.append(label, totalWheel.el);
   wheelsContainer.appendChild(col);
 }
@@ -461,7 +461,10 @@ if (isVariant2) {
   if (detailsSection) {
     const detailsCol = document.createElement('div');
     detailsCol.className = 'wheel-col details-col';
-    detailsCol.append(detailsSection);
+    const detailsLabel = document.createElement('div');
+    detailsLabel.className = 'wheel-label';
+    detailsLabel.textContent = 'Breakdown';
+    detailsCol.append(detailsLabel, detailsSection);
     wheelsContainer.appendChild(detailsCol);
   }
 }
