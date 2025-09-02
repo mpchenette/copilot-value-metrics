@@ -223,8 +223,12 @@ function createNumberWheel(index, interactive = true) {
   };
 }
 
-/** Create the WORD wheel that drives the number wheels */
-function createWordWheel(words, onSelectIndex, onScrollIndex) {
+/** Create the WORD wheel that drives the number wheels
+ * onSelectIndex(idx: number): fired after scroll settles or keyboard select
+ * onScrollIndex(idx: number): live integer index while scrolling (rounded)
+ * onScrollProgress(progress: number): live fractional index while scrolling
+ */
+function createWordWheel(words, onSelectIndex, onScrollIndex, onScrollProgress) {
   const wheel = document.createElement('div');
   wheel.className = 'wheel word';
   wheel.setAttribute('role', 'group');
@@ -280,6 +284,13 @@ function createWordWheel(words, onSelectIndex, onScrollIndex) {
     const idx = Math.round((center - pad - h / 2) / h);
     return Math.max(0, Math.min(words.length - 1, idx));
   };
+  const getIndexFloatFromScroll = () => {
+    const h = getItemHeight();
+    const pad = getPad();
+    const center = track.scrollTop + track.clientHeight / 2;
+    const raw = (center - pad - h / 2) / h;
+    return Math.max(0, Math.min(words.length - 1, raw));
+  };
   const setAriaSelected = (idx) => {
     [...track.children].forEach((el, i) => el.setAttribute('aria-selected', i === idx ? 'true' : 'false'));
   };
@@ -308,6 +319,7 @@ function createWordWheel(words, onSelectIndex, onScrollIndex) {
   track.addEventListener('scroll', () => {
     // Live sync callback (e.g., mirror total wheel) while scrolling
     onScrollIndex?.(getIndexFromScroll());
+    onScrollProgress?.(getIndexFloatFromScroll());
     if (scrollTimer) clearTimeout(scrollTimer);
     scrollTimer = setTimeout(onScrollSettled, 80);
   }, { passive: true });
@@ -380,6 +392,15 @@ function createTotalWheel(totals) {
     const y = pad + idx * h + h / 2 - track.clientHeight / 2;
     track.scrollTo({ top: y, behavior });
   };
+  // Scroll to a fractional index for smooth mirroring
+  const scrollToIndexFloat = (idxFloat) => {
+    const h = getItemHeight();
+    const pad = getPad();
+    const y = pad + idxFloat * h + h / 2 - track.clientHeight / 2;
+    track.scrollTo({ top: y, behavior: 'auto' });
+    const rounded = Math.round(Math.max(0, Math.min(totals.length - 1, idxFloat)));
+    setAriaSelected(rounded);
+  };
   const getIndexFromScroll = () => {
     const h = getItemHeight();
     const pad = getPad();
@@ -410,7 +431,12 @@ function createTotalWheel(totals) {
     setAriaSelected(0);
   });
 
-  return { el: wheel, get index() { return getIndexFromScroll(); }, set index(v) { snapToIndex(v, 'auto'); setAriaSelected(v); } };
+  return {
+    el: wheel,
+    get index() { return getIndexFromScroll(); },
+    set index(v) { snapToIndex(v, 'auto'); setAriaSelected(v); },
+    setProgress(p) { scrollToIndexFloat(p); }
+  };
 }
 
 // Number wheels are static (non-interactive) — skipped entirely in Variant 2
@@ -433,6 +459,10 @@ const wordWheel = createWordWheel(WORDS, (wordIdx) => {
 }, (scrollIdx) => {
   if (isVariant2 && totalWheel) {
     totalWheel.index = scrollIdx;
+  }
+}, (scrollProgress) => {
+  if (isVariant2 && totalWheel && Number.isFinite(scrollProgress)) {
+    totalWheel.setProgress(scrollProgress);
   }
 });
 
