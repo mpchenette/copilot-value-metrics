@@ -341,14 +341,17 @@ body[data-variant="2"] .details-grid { outline: 1px solid rgba(255,255,255,0.18)
 body[data-variant="2"] .detail-item { outline: 1px dashed rgba(255,255,255,0.18); border-radius: 6px; margin: 4px 0; }
 
 /* Variant 2: scale up UI ~1.6x for readability */
-body[data-variant="2"] .wheels { gap: 48px; }
+/* Variant 2: increase inter-column spacing for more breathing room */
+body[data-variant="2"] .wheels { gap: 80px; }
 body[data-variant="2"] .wheel { width: 126px; height: 330px; }
 body[data-variant="2"] .digit { height: 90px; font-size: 48px; }
-body[data-variant="2"] .wheel.word .digit.word { font-size: 40px; padding: 0 16px; }
+/* Ensure metric selector (word wheel) fully expands to its content on one line */
+body[data-variant="2"] .wheel.word { width: max-content; overflow: visible; }
+body[data-variant="2"] .wheel.word .digit.word { font-size: 40px; padding: 0 20px; white-space: nowrap; }
 body[data-variant="2"] .wheel-label { font-size: 28px; }
 body[data-variant="2"] .wheel .btn { padding: 12px 0; font-size: 18px; }
-/* Adjust separator symbol hitbox to match larger gap */
-body[data-variant="2"] .wheels > * + *::before { width: 48px; left: -24px; }
+/* Adjust separator visual to align with larger gap */
+body[data-variant="2"] .wheels > * + *::before { width: 80px; left: -40px; }
 /* Details typography scale */
 body[data-variant="2"] .detail-badge { font-size: 48px; }
 body[data-variant="2"] .detail-title { font-size: 22px; }
