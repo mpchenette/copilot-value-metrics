@@ -241,7 +241,10 @@ body {
   font-weight: 700;             /* make metric names bold */
 }
 
+/* Default selected state highlight */
 .digit[aria-selected="true"] { color: var(--accent-2); text-shadow: 0 0 16px rgba(56,189,248,0.35); }
+/* Word scroller: selected metric should be white, no blue glow */
+.wheel.word .digit.word[aria-selected="true"] { color: #ffffff; text-shadow: none; }
 /* Preserve custom coloring for the total wheel digits */
 .wheel.total .digit[aria-selected="true"] { color: inherit; text-shadow: none; }
 
@@ -397,6 +400,11 @@ body[data-variant="2"] .wheel.word .track {
   mask-size: 100% 100%;
   mask-repeat: no-repeat;
 }
+/* Override: remove fade on the metric scroller track in Variant 2 */
+body[data-variant="2"] .wheel.word .track {
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+}
 body[data-variant="2"] .wheel-label { font-size: 28px; }
 body[data-variant="2"] .wheel .btn { padding: 12px 0; font-size: 18px; }
 /* Thin separator line centered in the wider 80px gap */
@@ -409,6 +417,14 @@ body[data-variant="2"] .sum.score {
   place-items: center;
   min-height: 560px; /* match wheel height for vertical centering */
 }
+/* Emphasis rules for the metric scroller (word wheel) */
+/* Keep selected at original size; shrink unselected to emphasize contrast */
+.wheel.word .digit.word { transition: opacity 160ms ease, color 160ms ease, font-size 160ms ease; }
+.wheel.word .digit.word[aria-selected="true"] { opacity: 1; font-size: inherit; }
+/* Make unselected metrics a bit darker */
+.wheel.word .digit.word:not([aria-selected="true"]) { opacity: 0.5; font-size: 20px; }
+/* Variant 2: selected stays 40px (defined above), unselected smaller */
+body[data-variant="2"] .wheel.word .digit.word:not([aria-selected="true"]) { font-size: 32px; }
 /* Details typography scale */
 body[data-variant="2"] .detail-badge { font-size: 48px; }
 body[data-variant="2"] .detail-title { font-size: 22px; }
