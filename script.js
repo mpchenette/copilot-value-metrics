@@ -621,6 +621,10 @@ function updateDetails() {
       badge.setAttribute('aria-label', `${labels[i]} score`);
       const score = Number.isFinite(scores[i]) ? scores[i] : '';
       badge.textContent = String(score);
+      // Color code each category score: 1→red, 10→green
+      if (Number.isFinite(scores[i])) {
+        badge.style.color = scoreToColor(scores[i] - 1, 9);
+      }
 
       const title = document.createElement('div');
       title.className = 'detail-title';
@@ -659,6 +663,10 @@ function updateDetails() {
       badge.setAttribute('aria-label', `${labels[i]} score`);
       const score = Number.isFinite(scores[i]) ? scores[i] : '';
       badge.textContent = String(score);
+      // Color code each category score: 1→red, 10→green
+      if (Number.isFinite(scores[i])) {
+        badge.style.color = scoreToColor(scores[i] - 1, 9);
+      }
 
       const content = document.createElement('div');
       content.className = 'detail-content';
