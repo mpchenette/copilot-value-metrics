@@ -369,6 +369,8 @@ let sumEl = null; // inline total to the right of wheels
 let currentWordIdx = 0;
 const isVariant2 = document.body?.dataset?.variant === '2';
 const TOTALS = PROCESSED_WORDS.map(e => e.total);
+// Live-update references for details (badges/text per row)
+let detailRefs = null; // { badges: HTMLElement[], texts: HTMLElement[], titles: HTMLElement[] }
 
 // Map a score (0..max) to a red→green hue (0→120)
 function scoreToColor(score, max = 40) {
@@ -493,6 +495,8 @@ const wordWheel = createWordWheel(WORDS, (wordIdx) => {
     scoreEl.textContent = String(total);
     scoreEl.style.color = scoreToColor(total, 40);
   }
+  // Live update breakdown details to match score responsiveness
+  updateDetailsForIndex(scrollIdx);
 }, (scrollProgress) => {
   // No-op: static score readout has no scroller
 });
@@ -577,20 +581,13 @@ function updateReadout() {
 // Initial render
 updateReadout();
 
-function updateDetails() {
-  if (!detailsEl) return;
-  const word = WORDS[currentWordIdx] || '';
+// Build (once) and then update details content fast
+function ensureDetailsStructure() {
+  if (!detailsEl || detailRefs) return;
   const labels = NUMBER_LABELS;
-  const scores = isVariant2
-    ? (PROCESSED_WORDS[currentWordIdx]?.scoreIndices || Array(WHEEL_COUNT).fill(0)).map(s => s + 1)
-    : numberWheels.map(w => w.value);
-  const ex = WORD_TO_EXPLANATIONS.get(word) || [];
-  const total = scores.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
-
-  // Build items
+  detailRefs = { badges: [], texts: [], titles: [] };
   detailsEl.innerHTML = '';
   if (isVariant2) {
-    // Collapsible trays (Variant 2)
     for (let i = 0; i < WHEEL_COUNT; i++) {
       const detail = document.createElement('details');
       detail.className = 'detail-item';
@@ -598,7 +595,6 @@ function updateDetails() {
       const summary = document.createElement('summary');
       summary.className = 'detail-summary';
 
-      // Right-aligned chevron caret (SVG)
       const caret = document.createElement('div');
       caret.className = 'detail-caret';
       const svgNS = 'http://www.w3.org/2000/svg';
@@ -619,31 +615,21 @@ function updateDetails() {
       const badge = document.createElement('div');
       badge.className = 'detail-badge';
       badge.setAttribute('aria-label', `${labels[i]} score`);
-      const score = Number.isFinite(scores[i]) ? scores[i] : '';
-      badge.textContent = String(score);
-      // Color code each category score: 1→red, 10→green
-      if (Number.isFinite(scores[i])) {
-        badge.style.color = scoreToColor(scores[i] - 1, 9);
-      }
 
       const title = document.createElement('div');
       title.className = 'detail-title';
       title.textContent = labels[i] || `Category ${i + 1}`;
 
-      // Order: badge, title, caret on the right
       summary.append(badge, title, caret);
 
       const body = document.createElement('div');
       body.className = 'detail-body';
       const text = document.createElement('div');
       text.className = 'detail-text';
-      const expl = (ex[i] || '').trim();
-      text.textContent = expl || 'No explanation provided.';
       body.append(text);
 
       detail.append(summary, body);
       detailsEl.appendChild(detail);
-      // Insert a separator plus between categories (not after the last)
       if (i < WHEEL_COUNT - 1) {
         const sep = document.createElement('div');
         sep.className = 'detail-sep';
@@ -651,9 +637,12 @@ function updateDetails() {
         sep.textContent = '+';
         detailsEl.appendChild(sep);
       }
+
+      detailRefs.badges[i] = badge;
+      detailRefs.texts[i] = text;
+      detailRefs.titles[i] = title;
     }
   } else {
-    // Static stacked rows (Variant 1)
     for (let i = 0; i < WHEEL_COUNT; i++) {
       const item = document.createElement('div');
       item.className = 'detail-item row';
@@ -661,12 +650,6 @@ function updateDetails() {
       const badge = document.createElement('div');
       badge.className = 'detail-badge';
       badge.setAttribute('aria-label', `${labels[i]} score`);
-      const score = Number.isFinite(scores[i]) ? scores[i] : '';
-      badge.textContent = String(score);
-      // Color code each category score: 1→red, 10→green
-      if (Number.isFinite(scores[i])) {
-        badge.style.color = scoreToColor(scores[i] - 1, 9);
-      }
 
       const content = document.createElement('div');
       content.className = 'detail-content';
@@ -677,14 +660,44 @@ function updateDetails() {
 
       const text = document.createElement('div');
       text.className = 'detail-text';
-      const expl = (ex[i] || '').trim();
-      text.textContent = expl || 'No explanation provided.';
 
       content.append(title, text);
       item.append(badge, content);
       detailsEl.appendChild(item);
+
+      detailRefs.badges[i] = badge;
+      detailRefs.texts[i] = text;
+      detailRefs.titles[i] = title;
     }
   }
+}
+
+function updateDetailsForIndex(wordIdx) {
+  if (!detailsEl) return;
+  ensureDetailsStructure();
+  if (!detailRefs) return;
+  const labels = NUMBER_LABELS;
+  const word = WORDS[wordIdx] || '';
+  const scores = isVariant2
+    ? (PROCESSED_WORDS[wordIdx]?.scoreIndices || Array(WHEEL_COUNT).fill(0)).map(s => s + 1)
+    : numberWheels.map(w => w.value);
+  const ex = WORD_TO_EXPLANATIONS.get(word) || [];
+  for (let i = 0; i < WHEEL_COUNT; i++) {
+    const score = Number.isFinite(scores[i]) ? scores[i] : '';
+    detailRefs.badges[i].textContent = String(score);
+    if (Number.isFinite(scores[i])) {
+      detailRefs.badges[i].style.color = scoreToColor(scores[i] - 1, 9);
+    } else {
+      detailRefs.badges[i].style.color = '';
+    }
+    const expl = (ex[i] || '').trim();
+    detailRefs.texts[i].textContent = expl || 'No explanation provided.';
+    detailRefs.titles[i].textContent = labels[i] || `Category ${i + 1}`;
+  }
+}
+
+function updateDetails() {
+  updateDetailsForIndex(currentWordIdx);
 }
 
 // Populate details on first paint
