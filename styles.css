@@ -422,9 +422,11 @@ body[data-variant="2"] .sum.score {
 .wheel.word .digit.word { transition: opacity 160ms ease, color 160ms ease, font-size 160ms ease; }
 .wheel.word .digit.word[aria-selected="true"] { opacity: 1; font-size: inherit; }
 /* Make unselected metrics a bit darker */
-.wheel.word .digit.word:not([aria-selected="true"]) { opacity: 0.5; font-size: 20px; }
+/* Make unselected metric names smaller for stronger focus contrast */
+.wheel.word .digit.word:not([aria-selected="true"]) { opacity: 0.5; font-size: 16px; }
 /* Variant 2: selected stays 40px (defined above), unselected smaller */
-body[data-variant="2"] .wheel.word .digit.word:not([aria-selected="true"]) { font-size: 32px; }
+/* Variant 2: selected is 40px; shrink unselected further */
+body[data-variant="2"] .wheel.word .digit.word:not([aria-selected="true"]) { font-size: 28px; }
 /* Details typography scale */
 body[data-variant="2"] .detail-badge { font-size: 48px; }
 body[data-variant="2"] .detail-title { font-size: 22px; }
