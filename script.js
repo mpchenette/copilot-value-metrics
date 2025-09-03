@@ -356,9 +356,43 @@ function createWordWheel(words, onSelectIndex, onScrollIndex, onScrollProgress) 
     setAriaSelected(0);
     onScrollIndex?.(0);
     onSelectIndex?.(0);
+    // After first layout, fix width to longest highlighted metric to prevent shifts
+    updateWheelWidthToMax();
   });
 
-  return { el: wheel, get index() { return getIndexFromScroll(); }, set index(v) { snapToIndex(v, 'auto'); setAriaSelected(v); onSelectIndex?.(v); } };
+  // Compute and lock wheel width based on longest metric at highlighted size
+  function updateWheelWidthToMax() {
+    try {
+      const measure = document.createElement('div');
+      measure.className = 'digit word';
+      measure.setAttribute('aria-selected', 'true'); // ensure selected (full) font size
+      // Keep offscreen and unconstrained
+      measure.style.position = 'absolute';
+      measure.style.left = '-99999px';
+      measure.style.top = '0';
+      measure.style.whiteSpace = 'nowrap';
+      document.body.appendChild(measure);
+      let max = 0;
+      for (const w of words) {
+        measure.textContent = String(w);
+        // offsetWidth includes padding defined in .digit.word
+        const wpx = measure.offsetWidth;
+        if (wpx > max) max = wpx;
+      }
+      measure.remove();
+      if (max > 0) {
+        // Add a tiny buffer to avoid subpixel wraps
+        wheel.style.width = (Math.ceil(max) + 2) + 'px';
+      }
+    } catch (_) {
+      // no-op on failure; better to keep default behavior
+    }
+  }
+
+  // Recompute on resize (responsive font sizes / variant changes)
+  window.addEventListener('resize', updateWheelWidthToMax);
+
+  return { el: wheel, get index() { return getIndexFromScroll(); }, set index(v) { snapToIndex(v, 'auto'); setAriaSelected(v); onSelectIndex?.(v); }, updateWidth: updateWheelWidthToMax };
 }
 
 // Mount
